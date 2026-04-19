@@ -7,12 +7,11 @@ function CreateAccount() {
 
   const [form, setForm] = useState({
     name: "",
-    collegeName: "",
+    collegeName: "NIT Jamshedpur",
     hostelName: "",
     userName: "",
   });
 
-  // 🔥 Submit profile to backend
   const handleCreateAccount = async () => {
     try {
       const { name, collegeName, hostelName, userName } = form;
@@ -31,7 +30,6 @@ function CreateAccount() {
 
       console.log("PROFILE RESPONSE:", res.data);
 
-      // ✅ After success → go home
       navigate("/home");
 
     } catch (err) {
@@ -68,41 +66,101 @@ function CreateAccount() {
           </p>
         </div>
 
-        {/* Inputs */}
-        {[
-          { name: "name", label: "Full Name", placeholder: "Enter your name" },
-          { name: "collegeName", label: "College", placeholder: "Enter your college" },
-          { name: "hostelName", label: "Hostel", placeholder: "Enter your hostel" },
-          { name: "userName", label: "Username", placeholder: "Choose a username" },
-        ].map((field) => (
-          <div key={field.name} className="mb-5">
-            
-            <p className="text-xs text-gray-900 mb-1 ml-1">
-              {field.label}
-            </p>
+        {/* Name */}
+        <div className="mb-5">
+          <p className="text-xs text-gray-900 mb-1 ml-1">
+            Full Name
+          </p>
+          <input
+            type="text"
+            placeholder="Enter your name"
+            value={form.name}
+            onChange={(e) =>
+              setForm({ ...form, name: e.target.value })
+            }
+            className="w-full p-4 rounded-xl outline-none 
+            bg-[#E6EAF0]
+            shadow-[inset_6px_6px_12px_#C5C9D0,inset_-6px_-6px_12px_#FFFFFF]"
+          />
+        </div>
 
-            <input
-              type="text"
-              placeholder={field.placeholder}
-              value={form[field.name]}
-              onChange={(e) =>
-                setForm({ ...form, [field.name]: e.target.value })
-              }
-              className="w-full text-sm text-gray-800 p-4 rounded-xl outline-none 
-              bg-[#E6EAF0]
-              shadow-[inset_6px_6px_12px_#C5C9D0,inset_-6px_-6px_12px_#FFFFFF]
-              focus:shadow-[inset_3px_3px_6px_#C5C9D0,inset_-3px_-3px_6px_#FFFFFF]"
-            />
-          </div>
-        ))}
+        {/* College (Dropdown) */}
+        <div className="mb-5">
+          <p className="text-xs text-gray-900 mb-1 ml-1">
+            College
+          </p>
+          <select
+            value={form.collegeName}
+            onChange={(e) =>
+              setForm({ ...form, collegeName: e.target.value })
+            }
+            className="w-full p-4 rounded-xl outline-none 
+            bg-[#E6EAF0]
+            shadow-[inset_6px_6px_12px_#C5C9D0,inset_-6px_-6px_12px_#FFFFFF]"
+          >
+            <option value="NIT Jamshedpur">NIT Jamshedpur</option>
+          </select>
+        </div>
+
+        {/* Hostel (Dropdown) */}
+        <div className="mb-5">
+          <p className="text-xs text-gray-900 mb-1 ml-1">
+            Hostel
+          </p>
+          <select
+            value={form.hostelName}
+            onChange={(e) =>
+              setForm({ ...form, hostelName: e.target.value })
+            }
+            className="w-full p-4 rounded-xl outline-none 
+            bg-[#E6EAF0]
+            shadow-[inset_6px_6px_12px_#C5C9D0,inset_-6px_-6px_12px_#FFFFFF]"
+          >
+            <option value="">Select Hostel</option>
+
+            <option value="A">Hostel A (Girls)</option>
+            <option value="B">Hostel B (Girls)</option>
+            <option value="C">Hostel C (Girls)</option>
+            <option value="D">Hostel D (Girls)</option>
+
+            <option value="E">Hostel E (Boys)</option>
+            <option value="F">Hostel F (Boys)</option>
+            <option value="G">Hostel G (Boys)</option>
+            <option value="H">Hostel H (Boys)</option>
+            <option value="I">Hostel I (Boys)</option>
+            <option value="J">Hostel J (Boys)</option>
+            <option value="K">Hostel K (Boys)</option>
+            <option value="L">Hostel L (Boys)</option>
+
+            <option value="M">Hostel M (Girls)</option>
+          </select>
+        </div>
+
+        {/* Username */}
+        <div className="mb-5">
+          <p className="text-xs text-gray-900 mb-1 ml-1">
+            Username
+          </p>
+          <input
+            type="text"
+            placeholder="Choose a username"
+            value={form.userName}
+            onChange={(e) =>
+              setForm({ ...form, userName: e.target.value })
+            }
+            className="w-full p-4 rounded-xl outline-none 
+            bg-[#E6EAF0]
+            shadow-[inset_6px_6px_12px_#C5C9D0,inset_-6px_-6px_12px_#FFFFFF]"
+          />
+        </div>
 
         {/* Button */}
-        <button 
+        <button
           onClick={handleCreateAccount}
-          className="w-full text-sm font-medium py-4 rounded-xl 
-          text-white bg-[#6C5CE7]
+          className="w-full py-4 rounded-xl text-white bg-[#6C5CE7]
           shadow-[6px_6px_12px_#C5C9D0,-6px_-6px_12px_#FFFFFF]
-          active:scale-95 transition">
+          active:scale-95 transition"
+        >
           Create Account
         </button>
 

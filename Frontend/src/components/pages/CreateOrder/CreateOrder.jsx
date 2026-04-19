@@ -9,31 +9,23 @@ function CreateOrder() {
     platform: "instamart",
     targetAmount: "",
     duration: 10,
+    college: "NIT Jamshedpur",
+    hostel: "",
   });
 
-  // 🔥 CREATE ORDER FUNCTION
   const handleSubmit = async () => {
     try {
-      // ✅ Validation
-      if (!form.targetAmount || !form.duration) {
-        alert("Please fill all fields");
-        return;
-      }
-
       const res = await API.post("/orders/create", {
-        platform: form.platform,
+        ...form,
         targetAmount: Number(form.targetAmount),
         duration: Number(form.duration),
       });
 
-      console.log("ORDER CREATED:", res.data);
-
-      // 🚀 Redirect
       navigate("/active-orders");
 
     } catch (err) {
-      console.log(err);
-      alert("Failed to create order");
+      console.log("❌ ERROR:", err.response?.data);
+      alert(err.response?.data?.message || "Failed to create order");
     }
   };
 
@@ -50,12 +42,10 @@ function CreateOrder() {
         </p>
       </div>
 
-      {/* Card */}
       <div className="w-full max-w-md p-10 rounded-3xl 
         bg-[#E6EAF0]/80 backdrop-blur-xl
         shadow-[12px_12px_24px_#C5C9D0,-12px_-12px_24px_#FFFFFF]">
 
-        {/* Title */}
         <h1 className="text-xl font-semibold text-gray-800 mb-6 text-center">
           Create Order
         </h1>
@@ -77,7 +67,49 @@ function CreateOrder() {
           <option value="flipkart">Flipkart</option>
         </select>
 
-        {/* Target Amount */}
+        {/* College */}
+        <select
+          value={form.college}
+          onChange={(e) =>
+            setForm({ ...form, college: e.target.value })
+          }
+          className="w-full mb-4 p-4 rounded-xl outline-none 
+          bg-[#E6EAF0]
+          shadow-[inset_6px_6px_12px_#C5C9D0,inset_-6px_-6px_12px_#FFFFFF]"
+        >
+          <option value="NIT Jamshedpur">NIT Jamshedpur</option>
+        </select>
+
+        {/* Hostel */}
+        <select
+          value={form.hostel}
+          onChange={(e) =>
+            setForm({ ...form, hostel: e.target.value })
+          }
+          className="w-full mb-4 p-4 rounded-xl outline-none 
+          bg-[#E6EAF0]
+          shadow-[inset_6px_6px_12px_#C5C9D0,inset_-6px_-6px_12px_#FFFFFF]"
+        >
+          <option value="">Select Hostel</option>
+
+          <option value="A">Hostel A (Girls)</option>
+          <option value="B">Hostel B (Girls)</option>
+          <option value="C">Hostel C (Girls)</option>
+          <option value="D">Hostel D (Girls)</option>
+
+          <option value="E">Hostel E (Boys)</option>
+          <option value="F">Hostel F (Boys)</option>
+          <option value="G">Hostel G (Boys)</option>
+          <option value="H">Hostel H (Boys)</option>
+          <option value="I">Hostel I (Boys)</option>
+          <option value="J">Hostel J (Boys)</option>
+          <option value="K">Hostel K (Boys)</option>
+          <option value="L">Hostel L (Boys)</option>
+
+          <option value="M">Hostel M (Girls)</option>
+        </select>
+
+        {/* Target */}
         <input
           type="number"
           placeholder="Target Amount ₹"
@@ -103,13 +135,11 @@ function CreateOrder() {
           shadow-[inset_6px_6px_12px_#C5C9D0,inset_-6px_-6px_12px_#FFFFFF]"
         />
 
-        {/* Button */}
         <button
           onClick={handleSubmit}
           className="w-full py-4 rounded-xl text-white bg-[#6C5CE7]
           shadow-[6px_6px_12px_#C5C9D0,-6px_-6px_12px_#FFFFFF]
-          active:shadow-[inset_6px_6px_12px_#C5C9D0,inset_-6px_-6px_12px_#FFFFFF]
-          active:scale-95 transition duration-150"
+          active:scale-95 transition"
         >
           Create Order
         </button>

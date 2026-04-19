@@ -8,6 +8,7 @@ function Login() {
 
   // 🔥 Send OTP function (connects to backend)
   const handleSendOTP = async () => {
+    console.log("🔥 Button clicked");
     try {
       if (!email) {
         alert("Please enter email");

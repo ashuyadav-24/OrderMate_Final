@@ -9,6 +9,7 @@ import CreateAccount from "./components/pages/CreateAccount/CreateAccount.jsx";
 import Home from "./components/pages/Home/Home.jsx";
 import CreateOrder from "./components/pages/CreateOrder/CreateOrder.jsx";
 import ActiveOrders from "./components/pages/ActiveOrders/ActiveOrders.jsx";
+import ChatRoom from "./components/pages/ChatRoom/ChatRoom.jsx";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -50,6 +51,14 @@ const router = createBrowserRouter([
   element: (
     <ProtectedRoute>
       <ActiveOrders />
+    </ProtectedRoute>
+  ),
+},
+{
+  path: "/chat/:orderId",
+  element: (
+    <ProtectedRoute>
+      <ChatRoom />
     </ProtectedRoute>
   ),
 },
