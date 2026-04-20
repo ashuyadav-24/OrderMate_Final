@@ -8,7 +8,7 @@ function CreateOrder() {
   const [form, setForm] = useState({
     platform: "instamart",
     targetAmount: "",
-    duration: 10,
+    duration: " ",
     college: "NIT Jamshedpur",
     hostel: "",
   });

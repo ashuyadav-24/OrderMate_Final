@@ -1,3 +1,13 @@
 import { io } from "socket.io-client";
 
-export const socket = io("http://10.248.185.197:8002");
+const URL =
+  import.meta.env.VITE_API_BASE_URL?.replace("/api", "") ||
+  "http://localhost:8002";
+
+export const socket = io(URL, {
+  auth: (cb) =>
+    cb({
+      token: localStorage.getItem("token"),
+    }),
+  autoConnect: true,
+});

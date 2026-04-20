@@ -1,51 +1,119 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { socket } from "../../../socket";
+import { API } from "../../../api/api";
 
 function ChatRoom() {
   const { orderId } = useParams();
+  const navigate = useNavigate();
 
   const [msg, setMsg] = useState("");
   const [messages, setMessages] = useState([]);
-
   const bottomRef = useRef(null);
 
-  const user = JSON.parse(localStorage.getItem("user")) || {
-    name: "You",
+  // ✅ SAFE USER
+  const getUser = () => {
+    try {
+      const raw = localStorage.getItem("user");
+      if (!raw) return {};
+
+      const parsed = JSON.parse(raw);
+
+      return {
+        _id:
+          parsed._id ||
+          parsed.user?._id ||
+          "",
+        name:
+          parsed.name ||
+          parsed.user?.name ||
+          "",
+        userName:
+          parsed.userName ||
+          parsed.user?.userName ||
+          "",
+      };
+    } catch {
+      return {};
+    }
   };
 
-  // Join room
+  const user = getUser();
+
+  // Load old messages
+  const loadMessages = async () => {
+    try {
+      const res = await API.get(`/chat/${orderId}`);
+
+      setMessages(
+        (res.data || []).map((m) => ({
+          _id: m._id,
+          text: m.text,
+          senderId:
+            m.sender?._id ||
+            m.senderId,
+          sender:
+            m.sender?.name,
+          userName:
+            m.sender?.userName,
+          time: new Date(
+            m.createdAt
+          ).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        }))
+      );
+    } catch {}
+  };
+
   useEffect(() => {
+    loadMessages();
+
     socket.emit("joinOrderRoom", orderId);
 
     socket.on("newMessage", (data) => {
-      setMessages((prev) => [...prev, data]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          _id: data._id,
+          text: data.text,
+          senderId:
+            data.senderId ||
+            data.sender?._id,
+          sender:
+            data.sender?.name,
+          userName:
+            data.sender?.userName,
+          time: new Date(
+            data.createdAt
+          ).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        },
+      ]);
     });
 
-    return () => socket.off("newMessage");
+    return () => {
+      socket.off("newMessage");
+    };
   }, [orderId]);
 
-  // Auto scroll
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
   }, [messages]);
 
-  // Send
   const sendMessage = () => {
     if (!msg.trim()) return;
 
-   const user = JSON.parse(localStorage.getItem("user"));
+    socket.emit("sendMessage", {
+      orderId,
+      text: msg,
+    });
 
-const messageData = {
-  orderId,
-  text: msg,
-  sender: user?.name || "User",
-  time: new Date().toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  }),
-};
-    socket.emit("sendMessage", messageData);
     setMsg("");
   };
 
@@ -53,86 +121,76 @@ const messageData = {
     <div className="min-h-screen bg-[#E6EAF0] flex flex-col">
 
       {/* Header */}
-      <div className="p-4 text-center shadow-md bg-[#E6EAF0] sticky top-0 z-10">
+      <div className="p-4 shadow-md bg-[#E6EAF0]">
         <h1 className="text-lg font-bold text-[#6C5CE7]">
-          Order Chat
+          Chat Room
         </h1>
-        <p className="text-xs text-gray-500">
-          Order ID: {orderId.slice(-6)}
-        </p>
       </div>
 
       {/* Messages */}
-      <div className="bg-white rounded-xl p-4 h-[400px] overflow-y-auto mb-4 space-y-3">
-  {messages.map((m, i) => {
-    const isMine = m.sender === user.name;
+      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        {messages.map((m, i) => {
+          const isMine =
+            String(m.senderId) ===
+            String(user._id);
 
-    return (
-      <div
-        key={i}
-        className={`flex ${
-          isMine ? "justify-end" : "justify-start"
-        }`}
-      >
-        <div
-          className={`max-w-[75%] px-4 py-2 rounded-2xl shadow-md ${
-            isMine
-              ? "bg-[#6C5CE7] text-white rounded-br-sm"
-              : "bg-[#F5F5F5] text-gray-800 rounded-bl-sm"
-          }`}
-        >
-          {/* Sender Name */}
-          <p
-            className={`text-[11px] font-semibold mb-1 ${
-              isMine
-                ? "text-gray-200 text-right"
-                : "text-[#6C5CE7]"
-            }`}
-          >
-            {isMine ? "You" : m.sender}
-          </p>
+          return (
+            <div
+              key={m._id || i}
+              className={`flex ${
+                isMine
+                  ? "justify-end"
+                  : "justify-start"
+              }`}
+            >
+              <div
+                className={`max-w-[75%] px-4 py-2 rounded-2xl shadow-md ${
+                  isMine
+                    ? "bg-[#6C5CE7] text-white"
+                    : "bg-white text-black"
+                }`}
+              >
+                {!isMine && (
+                  <p className="text-xs text-[#6C5CE7] mb-1 font-semibold">
+                    @{m.userName}
+                  </p>
+                )}
 
-          {/* Message */}
-          <p className="text-sm">{m.text}</p>
+                <p>{m.text}</p>
 
-          {/* Time */}
-          <p
-            className={`text-[10px] mt-1 text-right ${
-              isMine
-                ? "text-gray-200"
-                : "text-gray-400"
-            }`}
-          >
-            {m.time}
-          </p>
-        </div>
+                <p className="text-[10px] text-right mt-1 opacity-70">
+                  {m.time}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+
+        <div ref={bottomRef}></div>
       </div>
-    );
-  })}
-</div>
 
       {/* Input */}
-      <div className="p-3 bg-[#E6EAF0] sticky bottom-0">
+      <div className="p-3 bg-[#E6EAF0]">
         <div className="flex gap-2">
-
           <input
             value={msg}
-            onChange={(e) => setMsg(e.target.value)}
-            placeholder="Message..."
-            onKeyDown={(e) =>
-              e.key === "Enter" && sendMessage()
+            onChange={(e) =>
+              setMsg(e.target.value)
             }
-            className="flex-1 px-4 py-3 rounded-full outline-none
-            bg-white text-sm shadow-md"
+            onKeyDown={(e) =>
+              e.key === "Enter" &&
+              sendMessage()
+            }
+            placeholder="Message..."
+            className="flex-1 px-4 py-3 rounded-full bg-white"
           />
 
           <button
             onClick={sendMessage}
-            className="px-5 rounded-full bg-[#6C5CE7] text-white font-medium shadow-md active:scale-95 transition"
+            className="px-5 rounded-full bg-[#6C5CE7] text-white"
           >
             Send
           </button>
-
         </div>
       </div>
     </div>

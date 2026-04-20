@@ -43,10 +43,11 @@ function OtpVerification() {
         otp,
       });
 
-      const { token, isNewUser } = res.data;
+      const { token, isNewUser, user } = res.data;
 
-      // Save token
+      // Save token and user
       localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
 
       // Redirect
       if (isNewUser) {
