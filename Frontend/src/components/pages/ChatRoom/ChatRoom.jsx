@@ -9,6 +9,8 @@ function ChatRoom() {
 
   const [msg, setMsg] = useState("");
   const [messages, setMessages] = useState([]);
+  const [showConfirm, setShowConfirm] = useState(false);
+
   const bottomRef = useRef(null);
 
   // ✅ SAFE USER
@@ -72,6 +74,7 @@ function ChatRoom() {
 
     socket.emit("joinOrderRoom", orderId);
 
+    // New Message
     socket.on("newMessage", (data) => {
       setMessages((prev) => [
         ...prev,
@@ -95,17 +98,25 @@ function ChatRoom() {
       ]);
     });
 
+    // 🔥 Chat Ended
+    socket.on("chatEnded", () => {
+     navigate("/home");
+     });
+
     return () => {
       socket.off("newMessage");
+      socket.off("chatEnded");
     };
-  }, [orderId]);
+  }, [orderId, navigate]);
 
+  // Auto scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({
       behavior: "smooth",
     });
   }, [messages]);
 
+  // Send
   const sendMessage = () => {
     if (!msg.trim()) return;
 
@@ -117,15 +128,82 @@ function ChatRoom() {
     setMsg("");
   };
 
+  // 🔥 End Chat
+  const handleEndChat = async () => {
+  try {
+    const token =
+      localStorage.getItem("token");
+
+    await API.delete(
+      `/chat/end/${orderId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    navigate("/home");
+  } catch (error) {
+    console.log(error);
+    alert(
+      error.response?.data?.message ||
+        "Failed to end chat"
+    );
+  }
+};
   return (
     <div className="min-h-screen bg-[#E6EAF0] flex flex-col">
 
       {/* Header */}
-      <div className="p-4 shadow-md bg-[#E6EAF0]">
+      <div className="p-4 shadow-md bg-[#E6EAF0] flex justify-between items-center">
         <h1 className="text-lg font-bold text-[#6C5CE7]">
           Chat Room
         </h1>
+
+        {/* End Chat */}
+        <button
+          onClick={() =>
+            setShowConfirm(true)
+          }
+          className="px-4 py-2 rounded-xl bg-red-500 text-white text-sm"
+        >
+          End Chat
+        </button>
       </div>
+
+      {/* Confirm Modal */}
+      {showConfirm && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-2xl w-[320px] shadow-lg">
+            <h2 className="text-lg font-semibold mb-2">
+              End Chat?
+            </h2>
+
+            <p className="text-sm text-gray-500 mb-5">
+              This will close chat for everyone.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() =>
+                  setShowConfirm(false)
+                }
+                className="flex-1 py-2 rounded-xl bg-gray-200"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handleEndChat}
+                className="flex-1 py-2 rounded-xl bg-red-500 text-white"
+              >
+                End
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
