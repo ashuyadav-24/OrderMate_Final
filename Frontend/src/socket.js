@@ -1,8 +1,6 @@
 import { io } from "socket.io-client";
 
-const URL =
-  import.meta.env.VITE_API_BASE_URL?.replace("/api", "") ||
-  "http://localhost:8002";
+const URL = "https://ordermate-final-3.onrender.com";
 
 export const socket = io(URL, {
   auth: (cb) =>
