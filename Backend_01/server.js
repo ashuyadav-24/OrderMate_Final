@@ -20,12 +20,11 @@ const httpServer = createServer(app);
 // ✅ Create socket.io instance
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: "https://order-mate-final.vercel.app",
     methods: ["GET", "POST"],
     credentials: true,
   },
 });
-
 // ✅ Global so controllers can emit events directly
 global.io = io;
 
@@ -33,7 +32,10 @@ global.io = io;
 socketHandler(io);
 
 // ── Middlewares ───────────────────────────────
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(cors({
+  origin: "https://order-mate-final.vercel.app",
+  credentials: true
+}));
 app.use(express.json());
 
 // ── Database ──────────────────────────────────
