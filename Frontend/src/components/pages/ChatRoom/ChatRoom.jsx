@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { socket } from "../../../socket";
 import { API } from "../../../api/api";
-import NotificationBell from "../../NotificationBell";
+import NotificationBell from "../NotificationBell/NotificationBell.jsx";
 
 function ChatRoom() {
   const { orderId } = useParams();
