@@ -157,3 +157,49 @@ export const getOrderById = async (req, res) => {
     res.status(500).json({ message: "Error fetching order" });
   }
 };
+
+// ─────────────────────────────────────────────
+// 🚪 LEAVE ORDER / CHAT
+// POST /api/orders/leave/:orderId
+// ─────────────────────────────────────────────
+export const leaveOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({
+        message: "Order not found",
+      });
+    }
+
+    const userId = req.user._id.toString();
+
+    const isAdmin =
+      order.admin.toString() === userId ||
+      order.createdBy.toString() === userId;
+
+    if (isAdmin) {
+      return res.status(400).json({
+        message: "Admin cannot leave. Use End Chat.",
+      });
+    }
+
+    order.participants = order.participants.filter(
+      (p) => p.userId.toString() !== userId
+    );
+
+    await order.save();
+
+    return res.status(200).json({
+      message: "Left chat successfully",
+    });
+  } catch (error) {
+    console.error("Leave order error:", error);
+
+    return res.status(500).json({
+      message: "Error leaving chat",
+    });
+  }
+};
