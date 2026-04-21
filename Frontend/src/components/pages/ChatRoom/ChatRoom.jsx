@@ -14,7 +14,23 @@ function ChatRoom() {
 
   const bottomRef = useRef(null);
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const getUser = () => {
+  try {
+    const raw = localStorage.getItem("user");
+
+    if (!raw || raw === "undefined" || raw === "null") {
+      return {};
+    }
+
+    const parsed = JSON.parse(raw);
+
+    return parsed._id ? parsed : parsed.user || parsed;
+  } catch {
+    return {};
+  }
+};
+
+const user = getUser();
 
   const fetchOrder = async () => {
     const res = await API.get(`/orders/${orderId}`);
