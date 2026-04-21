@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { API } from "../../../api/api";
 import { useNavigate } from "react-router-dom";
 import { socket } from "../../../socket";
-import NotificationBell from "../../NotificationBell";;
+import NotificationBell from "../NotificationBell/NotificationBell.jsx";
 
 function ActiveOrders() {
   const [orders, setOrders] = useState([]);
