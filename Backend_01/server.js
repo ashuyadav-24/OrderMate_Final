@@ -18,9 +18,15 @@ const app = express();
 const httpServer = createServer(app);
 
 // ✅ Create socket.io instance
+// ✅ Allow all Vercel preview URLs + production URL
+const allowedOrigins = [
+  "https://order-mate-final.vercel.app",
+  /https:\/\/order-mate-final.*\.vercel\.app/,  // covers preview deployments
+];
+
 const io = new Server(httpServer, {
   cors: {
-    origin: "https://order-mate-final.vercel.app",
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -33,8 +39,19 @@ socketHandler(io);
 
 // ── Middlewares ───────────────────────────────
 app.use(cors({
-  origin: "https://order-mate-final.vercel.app",
-  credentials: true
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, Postman)
+    if (!origin) return callback(null, true);
+    // Allow any vercel.app subdomain for this project + localhost
+    if (
+      origin.includes("order-mate-final") ||
+      origin.includes("localhost")
+    ) {
+      return callback(null, true);
+    }
+    callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
 }));
 app.use(express.json());
 
