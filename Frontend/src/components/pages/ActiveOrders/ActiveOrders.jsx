@@ -2,195 +2,198 @@ import { useEffect, useState } from "react";
 import { API } from "../../../api/api";
 import { useNavigate } from "react-router-dom";
 import { socket } from "../../../socket";
+import NotificationBell from "../../components/NotificationBell";
 
 function ActiveOrders() {
   const [orders, setOrders] = useState([]);
   const [requestedIds, setRequestedIds] = useState(
-    JSON.parse(localStorage.getItem("requestedIds")) || []
+    () => JSON.parse(localStorage.getItem("requestedIds") || "[]")
   );
   const [time, setTime] = useState(Date.now());
+  const [toast, setToast] = useState(null);
 
   const navigate = useNavigate();
 
   const getUser = () => {
     try {
       const raw = localStorage.getItem("user");
-      if (!raw || raw === "undefined") return {};
-      const parsed = JSON.parse(raw);
-      return parsed._id ? parsed : parsed.user || parsed;
-    } catch {
-      return {};
-    }
+      if (!raw || raw === "undefined" || raw === "null") return {};
+      const p = JSON.parse(raw);
+      return p._id ? p : (p.user || p);
+    } catch { return {}; }
   };
-
   const user = getUser();
 
-  // save requested ids
+  const showToast = (msg, type = "info") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  // Persist requestedIds across refreshes
   useEffect(() => {
-    localStorage.setItem(
-      "requestedIds",
-      JSON.stringify(requestedIds)
-    );
+    localStorage.setItem("requestedIds", JSON.stringify(requestedIds));
   }, [requestedIds]);
 
   const fetchOrders = async () => {
     try {
       const res = await API.get("/orders");
-      const data = res.data || [];
-      setOrders(data);
-
-      // 🔥 auto redirect if user already participant
-      const joinedOrder = data.find((order) =>
-        order.participants?.some(
-          (p) =>
-            String(p.userId?._id || p.userId) ===
-            String(user._id)
-        )
-      );
-
-      if (joinedOrder?.isChatEnabled) {
-        navigate(`/chat/${joinedOrder._id}`);
-      }
-    } catch (error) {
-      console.log(error);
+      setOrders(res.data || []);
+    } catch (err) {
+      console.log(err);
     }
   };
 
   useEffect(() => {
     fetchOrders();
-    const interval = setInterval(fetchOrders, 3000);
+    const interval = setInterval(fetchOrders, 4000);
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTime(Date.now());
-    }, 1000);
-
+    const timer = setInterval(() => setTime(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
-    if (user?._id) {
-      socket.emit("joinRoom", user._id);
-    }
+    // Join personal room for notifications
+    socket.emit("joinUserRoom");
 
-    socket.on("requestAccepted", (data) => {
-      setRequestedIds((prev) =>
-        prev.filter((id) => id !== data.orderId)
-      );
-
-      navigate(`/chat/${data.orderId}`);
+    // ✅ Request accepted → show toast + "Chat Now" button (NO auto redirect)
+    socket.on("requestAccepted", ({ orderId }) => {
+      showToast("🎉 Request accepted! You can now chat.", "success");
+      setRequestedIds((prev) => prev.filter((id) => id !== orderId));
+      fetchOrders(); // re-fetch so isParticipant becomes true
     });
 
-    socket.on("requestDeclined", (data) => {
-      setRequestedIds((prev) =>
-        prev.filter((id) => id !== data.orderId)
-      );
-      alert("Your request was declined");
+    socket.on("requestDeclined", ({ orderId }) => {
+      showToast("Your request was declined.", "error");
+      setRequestedIds((prev) => prev.filter((id) => id !== orderId));
     });
 
     return () => {
       socket.off("requestAccepted");
       socket.off("requestDeclined");
     };
-  }, [user?._id, navigate]);
+  }, []);
 
   const getTimeLeft = (expiresAt) => {
     const diff = new Date(expiresAt) - time;
     if (diff <= 0) return "Expired";
-
     const min = Math.floor(diff / 60000);
     const sec = Math.floor((diff % 60000) / 1000);
-
     return `${min}m ${sec}s`;
   };
 
+  // ✅ Robust participant check
+  const isParticipant = (order) =>
+    order.participants?.some(
+      (p) => String(p.userId?._id || p.userId) === String(user._id)
+    );
+
+  const isAdmin = (order) =>
+    String(order.admin?._id || order.admin) === String(user._id);
+
   const handleJoin = async (orderId) => {
     try {
-      await API.post("/requests/send", {
-        orderId,
-        amount: 0,
-      });
-
+      await API.post("/requests/send", { orderId, amount: 0 });
       setRequestedIds((prev) => [...prev, orderId]);
-    } catch (error) {
-      alert(
-        error.response?.data?.message ||
-          "Failed to join"
-      );
+      showToast("Request sent! Waiting for admin ⏳");
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to join", "error");
     }
   };
 
   return (
     <div className="min-h-screen bg-[#E6EAF0] px-6 py-8">
-      <h1 className="text-xl font-semibold text-gray-800 mb-6">
-        Active Orders
-      </h1>
+
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-xl shadow-lg text-white text-sm font-medium max-w-xs text-center
+          ${toast.type === "success" ? "bg-green-500" : toast.type === "error" ? "bg-red-500" : "bg-[#6C5CE7]"}`}>
+          {toast.msg}
+        </div>
+      )}
+
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-xl font-semibold text-gray-800">Active Orders</h1>
+        {/* ✅ Bell visible on this page too */}
+        <NotificationBell />
+      </div>
 
       {orders.length === 0 ? (
-        <div className="mt-28 text-center">
-          <h2 className="text-xl font-semibold">
-            No Active Orders
-          </h2>
+        <div className="mt-28 text-center text-gray-500">
+          <h2 className="text-xl font-semibold">No Active Orders 😴</h2>
         </div>
       ) : (
         orders.map((order) => {
-          const requested =
-            requestedIds.includes(order._id);
+          const participant = isParticipant(order);
+          const admin = isAdmin(order);
+          const requested = requestedIds.includes(order._id);
+          const isClosed = order.status === "closed";
 
-          const joined = order.participants?.some(
-            (p) =>
-              String(p.userId?._id || p.userId) ===
-              String(user._id)
-          );
+          // ── Button logic ──────────────────
+          // Admin or accepted participant → "Chat Now"
+          // Pending request → "Requested"
+          // Closed → "Closed"
+          // Others → "Join"
+          let label, color, disabled, action;
+
+          if (isClosed) {
+            label = "Closed"; color = "bg-gray-400"; disabled = true; action = null;
+          } else if (admin || participant) {
+            label = admin ? "Manage Order 👑" : "Chat Now 💬";
+            color = admin ? "bg-[#6C5CE7]" : "bg-green-600";
+            disabled = false;
+            action = () => navigate(`/chat/${order._id}`);
+          } else if (requested) {
+            label = "Requested ⏳"; color = "bg-gray-400"; disabled = true; action = null;
+          } else {
+            label = "Join"; color = "bg-[#6C5CE7]"; disabled = false;
+            action = () => handleJoin(order._id);
+          }
 
           return (
-            <div
-              key={order._id}
-              className="p-5 mb-5 rounded-2xl bg-white shadow"
-            >
-              <h2 className="text-lg font-semibold text-[#6C5CE7] capitalize">
-                {order.platform}
-              </h2>
+            <div key={order._id}
+              className="p-5 mb-5 rounded-2xl bg-[#E6EAF0] shadow-[8px_8px_16px_#C5C9D0,-8px_-8px_16px_#FFFFFF]">
 
-              <p>Hostel {order.hostel}</p>
+              <div className="flex justify-between items-start">
+                <h2 className="text-lg font-semibold text-[#6C5CE7] capitalize">{order.platform}</h2>
+                <span className={`text-xs px-2 py-1 rounded-full font-medium
+                  ${order.status === "open" ? "bg-green-100 text-green-700" :
+                    order.status === "matched" ? "bg-blue-100 text-blue-700" :
+                    "bg-gray-100 text-gray-500"}`}>
+                  {order.status}
+                </span>
+              </div>
 
-              <p className="text-green-600">
-                Target: ₹{order.targetAmount}
-              </p>
-
-              <p>
-                👥 {order.participants?.length || 0} joined
-              </p>
-
-              <p>
-                ⏱ {getTimeLeft(order.expiresAt)}
-              </p>
+              <p className="text-sm text-gray-500 mt-1">Hostel {order.hostel}</p>
+              <p className="text-sm text-gray-700 mt-1">₹{order.currentAmount} / ₹{order.targetAmount}</p>
+              <p className="text-green-600 text-sm">Need ₹{Math.max(0, order.targetAmount - order.currentAmount)} more</p>
+              <p className="text-xs text-gray-500 mt-1">👥 {order.participants?.length || 0} joined</p>
+              <p className="text-xs text-gray-500 mt-1">⏱ {getTimeLeft(order.expiresAt)}</p>
+              {order.admin?.userName && (
+                <p className="text-xs text-gray-400 mt-1">by @{order.admin.userName}</p>
+              )}
 
               <button
-                disabled={requested || joined}
-                onClick={() =>
-                  handleJoin(order._id)
-                }
-                className={`mt-3 w-full py-2 rounded-xl text-white ${
-                  joined
-                    ? "bg-green-500"
-                    : requested
-                    ? "bg-gray-400"
-                    : "bg-[#6C5CE7]"
-                }`}
-              >
-                {joined
-                  ? "Joined ✅"
-                  : requested
-                  ? "Requested ⏳"
-                  : "Join"}
+                onClick={action}
+                disabled={disabled}
+                className={`mt-3 w-full py-2 rounded-xl text-white ${color}
+                  shadow-md active:scale-95 transition disabled:opacity-60 disabled:cursor-not-allowed`}>
+                {label}
               </button>
             </div>
           );
         })
       )}
+
+      {/* Branding */}
+      <div className="pb-16" />
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 text-center">
+        <h2 className="text-xl font-bold text-[#6C5CE7]">OrderMate</h2>
+        <p className="text-xs text-gray-500">Order together. Save together.</p>
+      </div>
     </div>
   );
 }
