@@ -77,22 +77,24 @@ function ActiveOrders() {
     socket.emit("joinUserRoom", user._id);
 
     socket.on("requestAccepted", async ({ orderId }) => {
-      showToast("🎉 Request accepted! Start chat now.", "success");
+  showToast("🎉 Request accepted! Start chat now.", "success");
 
-      setRequestedIds((prev) =>
-        prev.filter((id) => id !== orderId)
-      );
+  setRequestedIds((prev) =>
+    prev.filter((id) => id !== orderId)
+  );
 
-      setAcceptedIds((prev) =>
-        prev.includes(orderId)
-          ? prev
-          : [...prev, orderId]
-      );
+  setAcceptedIds((prev) =>
+    prev.includes(orderId)
+      ? prev
+      : [...prev, orderId]
+  );
 
-      await fetchOrders();
+  await fetchOrders();
 
-      navigate(`/chat/${orderId}`);
-    });
+  setTimeout(() => {
+    navigate(`/chat/${orderId}`);
+  }, 500);
+});
 
     socket.on("requestDeclined", ({ orderId }) => {
       showToast("❌ Request declined", "error");

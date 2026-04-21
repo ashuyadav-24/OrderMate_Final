@@ -98,16 +98,21 @@ function ChatRoom() {
       fetchOrder();
     });
 
+    socket.on("memberJoined", () => {
+      fetchOrder();
+    });
+
     socket.on("chatEnded", () => {
       navigate("/active-orders");
     });
 
     return () => {
-      socket.off("newMessage");
-      socket.off("memberLeft");
-      socket.off("requestAccepted");
-      socket.off("chatEnded");
-    };
+  socket.off("newMessage");
+  socket.off("memberLeft");
+  socket.off("requestAccepted");
+  socket.off("memberJoined");
+  socket.off("chatEnded");
+};
   }, [orderId]);
 
   useEffect(() => {
