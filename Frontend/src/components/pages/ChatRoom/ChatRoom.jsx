@@ -32,6 +32,13 @@ function ChatRoom() {
 
   const user = getUser();
 
+const currentUserId = String(
+  user?._id ||
+  user?.id ||
+  user?.user?._id ||
+  ""
+);
+
   const fetchOrder = async () => {
     try {
       const res = await API.get(`/orders/${orderId}`);
@@ -203,12 +210,17 @@ function ChatRoom() {
             );
           }
 
-          const myId = String(user?._id || "");
-const msgSenderId = String(
-  m.senderId?._id || m.senderId || ""
+          const msgSenderId = String(
+  m.senderId?._id ||
+  m.senderId?.id ||
+  m.senderId ||
+  ""
 );
 
-const isMine = myId === msgSenderId;
+const isMine =
+  currentUserId &&
+  msgSenderId &&
+  currentUserId === msgSenderId;
 
           return (
             <div
