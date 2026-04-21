@@ -102,8 +102,13 @@ export const acceptRequest = async (req, res) => {
 
     // 🔔 Notify the joiner — their button will flip to "Chat Now"
     global.io.to(request.userId.toString()).emit("requestAccepted", {
-      orderId: order._id,
-    });
+  orderId: order._id,
+});
+
+// notify chat room users to refresh members count
+global.io.to(order._id.toString()).emit("memberJoined", {
+  orderId: order._id,
+});
 
     res.json({ message: "Accepted!", order });
 
