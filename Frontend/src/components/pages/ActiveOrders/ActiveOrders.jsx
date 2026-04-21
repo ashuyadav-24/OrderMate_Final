@@ -306,17 +306,16 @@ if (isClosed) {
       )}
 
       {/* Footer */}
-      <div className="pb-16" />
+      {/* Footer */}
+<div className="mt-8 pb-6 text-center">
+  <h2 className="text-xl font-bold text-[#6C5CE7]">
+    OrderMate
+  </h2>
 
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 text-center">
-        <h2 className="text-xl font-bold text-[#6C5CE7]">
-          OrderMate
-        </h2>
-
-        <p className="text-xs text-gray-500">
-          Order together. Save together.
-        </p>
-      </div>
+  <p className="text-xs text-gray-500">
+    Order together. Save together.
+  </p>
+</div>
     </div>
   );
 }
