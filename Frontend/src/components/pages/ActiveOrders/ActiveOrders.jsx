@@ -77,20 +77,25 @@ function ActiveOrders() {
     socket.emit("joinUserRoom");
 
     socket.on("requestAccepted", async ({ orderId }) => {
-      showToast("🎉 Request accepted! Start chat now.", "success");
+  showToast("🎉 Request accepted! Start chat now.", "success");
 
-      setRequestedIds((prev) =>
-        prev.filter((id) => id !== orderId)
-      );
+  // remove pending requested state
+  setRequestedIds((prev) =>
+    prev.filter((id) => id !== orderId)
+  );
 
-      setAcceptedIds((prev) =>
-        prev.includes(orderId)
-          ? prev
-          : [...prev, orderId]
-      );
+  // force accepted state for Start Chat button
+  setAcceptedIds((prev) =>
+    prev.includes(orderId)
+      ? prev
+      : [...prev, orderId]
+  );
 
-      await fetchOrders();
-    });
+  await fetchOrders();
+
+  // Optional auto redirect after accept
+  navigate(`/chat/${orderId}`);
+});
 
     socket.on("requestDeclined", ({ orderId }) => {
       showToast("❌ Request declined", "error");
