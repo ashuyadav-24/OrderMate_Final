@@ -2,7 +2,6 @@ import Order from "../models/order.models.js";
 
 // ─────────────────────────────────────────────
 // 🆕 CREATE ORDER
-// POST /api/orders/create
 // ─────────────────────────────────────────────
 export const createOrder = async (req, res) => {
   try {
@@ -12,12 +11,6 @@ export const createOrder = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Optional: still ensure profile exists
-    if (!req.user.collegeName || !req.user.hostelName) {
-      return res.status(400).json({ message: "Complete your profile first" });
-    }
-
-    // ⏱ expiry time
     const expiresAt = new Date(Date.now() + duration * 60 * 1000);
 
     const order = await Order.create({
@@ -25,19 +18,14 @@ export const createOrder = async (req, res) => {
       targetAmount,
       duration,
       expiresAt,
-
       createdBy: req.user._id,
       admin: req.user._id,
-
       participants: [{ userId: req.user._id }],
-
-      // ✅ from frontend dropdown
       college,
       hostel,
     });
 
     res.status(201).json(order);
-
   } catch (error) {
     console.error("Create order error:", error);
     res.status(500).json({ message: "Error creating order" });
@@ -45,28 +33,42 @@ export const createOrder = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────
-// 📋 GET ACTIVE ORDERS (NO HOSTEL FILTER)
-// GET /api/orders
+// 📋 GET ACTIVE ORDERS
 // ─────────────────────────────────────────────
 export const getOrders = async (req, res) => {
   try {
     const orders = await Order.find({
       status: { $in: ["open", "matched"] },
-      expiresAt: { $gt: new Date() }, // not expired
+      expiresAt: { $gt: new Date() },
     })
       .populate("admin", "name userName")
       .populate("participants.userId", "name userName")
       .sort({ createdAt: -1 });
 
-console.log(
-  JSON.stringify(orders, null, 2)
-);
-
     res.json(orders);
-
   } catch (error) {
     console.error("Get orders error:", error);
     res.status(500).json({ message: "Error fetching orders" });
+  }
+};
+
+// ─────────────────────────────────────────────
+// 🔍 GET SINGLE ORDER
+// ─────────────────────────────────────────────
+export const getOrderById = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id)
+      .populate("admin", "name userName")
+      .populate("participants.userId", "name userName");
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res.json(order);
+  } catch (error) {
+    console.error("Get order error:", error);
+    res.status(500).json({ message: "Error fetching order" });
   }
 };
 
@@ -88,7 +90,6 @@ export const deleteOrder = async (req, res) => {
     await order.deleteOne();
 
     res.json({ message: "Order deleted successfully" });
-
   } catch (error) {
     console.error("Delete order error:", error);
     res.status(500).json({ message: "Error deleting order" });
@@ -103,6 +104,7 @@ export const updateOrderStatus = async (req, res) => {
     const { status } = req.body;
 
     const validStatuses = ["open", "matched", "closed"];
+
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
     }
@@ -118,10 +120,7 @@ export const updateOrderStatus = async (req, res) => {
     }
 
     order.status = status;
-
-    if (status === "matched") {
-      order.isChatEnabled = true;
-    }
+    order.isChatEnabled = status === "matched";
 
     if (status === "closed") {
       order.isChatEnabled = false;
@@ -129,8 +128,10 @@ export const updateOrderStatus = async (req, res) => {
 
     await order.save();
 
-    res.json({ message: "Status updated", order });
-
+    res.json({
+      message: "Status updated",
+      order,
+    });
   } catch (error) {
     console.error("Update status error:", error);
     res.status(500).json({ message: "Error updating status" });
@@ -138,29 +139,8 @@ export const updateOrderStatus = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────
-// 🔍 GET SINGLE ORDER
-// ─────────────────────────────────────────────
-export const getOrderById = async (req, res) => {
-  try {
-    const order = await Order.findById(req.params.id)
-      .populate("admin", "name userName")
-      .populate("participants.userId", "name userName");
-
-    if (!order) {
-      return res.status(404).json({ message: "Order not found" });
-    }
-
-    res.json(order);
-
-  } catch (error) {
-    console.error("Get order error:", error);
-    res.status(500).json({ message: "Error fetching order" });
-  }
-};
-
-// ─────────────────────────────────────────────
-// 🚪 LEAVE ORDER / CHAT
-// POST /api/orders/leave/:orderId
+// 🚪 LEAVE CHAT
+// Any non-admin participant can leave
 // ─────────────────────────────────────────────
 export const leaveOrder = async (req, res) => {
   try {
@@ -180,12 +160,25 @@ export const leaveOrder = async (req, res) => {
       order.admin.toString() === userId ||
       order.createdBy.toString() === userId;
 
+    // Admin clicks leave = close room instead
     if (isAdmin) {
-      return res.status(400).json({
-        message: "Admin cannot leave. Use End Chat.",
+      order.status = "closed";
+      order.isChatEnabled = false;
+
+      await order.save();
+
+      if (global.io) {
+        global.io.to(orderId).emit("chatEnded", {
+          message: "Chat ended by creator",
+        });
+      }
+
+      return res.status(200).json({
+        message: "Chat ended successfully",
       });
     }
 
+    // Remove participant
     order.participants = order.participants.filter(
       (p) => p.userId.toString() !== userId
     );
