@@ -31,7 +31,7 @@ function OtpVerification() {
     try {
       const otp = inputs.current.map((input) => input.value).join("");
 
-      if (otp.length !== 6) {
+      if(otp.length !== 4) {
         alert("Enter full OTP");
         return;
       }
@@ -93,10 +93,12 @@ function OtpVerification() {
 
         {/* OTP Inputs */}
         <div className="flex justify-between gap-2 mb-6">
-          {[...Array(6)].map((_, index) => (
+          {[...Array(4)].map((_, index) => (
             <input
               key={index}
-              type="text"
+              type="tel"
+              inputMode="numeric"
+              pattern="[0-9]*"
               maxLength="1"
               ref={(el) => (inputs.current[index] = el)}
               onChange={(e) => handleChange(e, index)}
