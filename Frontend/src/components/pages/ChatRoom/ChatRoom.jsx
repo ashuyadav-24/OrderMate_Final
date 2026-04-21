@@ -58,8 +58,20 @@ function ChatRoom() {
     socket.emit("joinOrderRoom", orderId);
 
     socket.on("newMessage", (data) => {
-      setMessages((prev) => [...prev, data]);
-    });
+  setMessages((prev) => [
+    ...prev,
+    {
+      _id: data._id || Date.now(),
+      text: data.text,
+      senderId: data.sender?._id || data.senderId,
+      userName:
+        data.sender?.userName ||
+        data.userName ||
+        data.sender?.name ||
+        "User",
+    },
+  ]);
+});
 
     socket.on("memberLeft", ({ userName, name }) => {
       setMessages((prev) => [

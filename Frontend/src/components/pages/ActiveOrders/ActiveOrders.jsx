@@ -74,7 +74,7 @@ function ActiveOrders() {
   }, []);
 
   useEffect(() => {
-    socket.emit("joinUserRoom");
+    socket.emit("joinUserRoom", user._id);
 
     socket.on("requestAccepted", async ({ orderId }) => {
   showToast("🎉 Request accepted! Start chat now.", "success");
