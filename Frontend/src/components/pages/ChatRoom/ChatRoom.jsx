@@ -203,8 +203,12 @@ function ChatRoom() {
             );
           }
 
-          const isMine =
-            String(m.senderId) === String(user._id);
+          const myId = String(user?._id || "");
+const msgSenderId = String(
+  m.senderId?._id || m.senderId || ""
+);
+
+const isMine = myId === msgSenderId;
 
           return (
             <div
