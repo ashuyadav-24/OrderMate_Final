@@ -65,6 +65,53 @@ export const getOrderById = async (req, res) => {
   }
 };
 
+export const updateOrderStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({
+        message: "Order not found",
+      });
+    }
+
+    const userId = req.user._id.toString();
+
+    const isAdmin =
+      order.admin.toString() === userId ||
+      order.createdBy.toString() === userId;
+
+    if (!isAdmin) {
+      return res.status(403).json({
+        message: "Only creator can update status",
+      });
+    }
+
+    order.status = status;
+
+    if (status === "matched") {
+      order.isChatEnabled = true;
+    }
+
+    if (status === "closed") {
+      order.isChatEnabled = false;
+    }
+
+    await order.save();
+
+    return res.json({
+      message: "Order status updated",
+      order,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Error updating status",
+    });
+  }
+};
+
 // ─────────────────────────────────────────────
 // 🚪 LEAVE CHAT
 // ─────────────────────────────────────────────
