@@ -23,7 +23,7 @@ export const sendOTP = async (req, res) => {
     }
 
     // 🔐 Generate OTP
-    const plainOTP = crypto.randomInt(100000, 999999).toString();
+    const plainOTP = crypto.randomInt(1000, 9999).toString();
     console.log("STEP 3: OTP:", plainOTP);
 
     // 🔒 Hash OTP
