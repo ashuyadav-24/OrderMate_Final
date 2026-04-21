@@ -18,9 +18,12 @@ function ActiveOrders() {
   const getUser = () => {
     try {
       const raw = localStorage.getItem("user");
+
       if (!raw || raw === "undefined" || raw === "null") return {};
+
       const p = JSON.parse(raw);
-      return p._id ? p : (p.user || p);
+
+      return p._id ? p : p.user || p;
     } catch {
       return {};
     }
@@ -30,15 +33,19 @@ function ActiveOrders() {
 
   const showToast = (msg, type = "info") => {
     setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
+
+    setTimeout(() => {
+      setToast(null);
+    }, 3000);
   };
 
-  // Save requestedIds
   useEffect(() => {
-    localStorage.setItem("requestedIds", JSON.stringify(requestedIds));
+    localStorage.setItem(
+      "requestedIds",
+      JSON.stringify(requestedIds)
+    );
   }, [requestedIds]);
 
-  // Fetch active orders
   const fetchOrders = async () => {
     try {
       const res = await API.get("/orders");
@@ -48,7 +55,6 @@ function ActiveOrders() {
     }
   };
 
-  // Load orders every 4 sec
   useEffect(() => {
     fetchOrders();
 
@@ -59,7 +65,6 @@ function ActiveOrders() {
     return () => clearInterval(interval);
   }, []);
 
-  // Timer
   useEffect(() => {
     const timer = setInterval(() => {
       setTime(Date.now());
@@ -68,28 +73,31 @@ function ActiveOrders() {
     return () => clearInterval(timer);
   }, []);
 
-  // Socket listeners
   useEffect(() => {
     socket.emit("joinUserRoom");
 
-    // Request accepted
     socket.on("requestAccepted", async ({ orderId }) => {
       showToast("🎉 Request accepted! Start chat now.", "success");
 
-      setRequestedIds((prev) => prev.filter((id) => id !== orderId));
+      setRequestedIds((prev) =>
+        prev.filter((id) => id !== orderId)
+      );
 
       setAcceptedIds((prev) =>
-        prev.includes(orderId) ? prev : [...prev, orderId]
+        prev.includes(orderId)
+          ? prev
+          : [...prev, orderId]
       );
 
       await fetchOrders();
     });
 
-    // Request declined
     socket.on("requestDeclined", ({ orderId }) => {
       showToast("❌ Request declined", "error");
 
-      setRequestedIds((prev) => prev.filter((id) => id !== orderId));
+      setRequestedIds((prev) =>
+        prev.filter((id) => id !== orderId)
+      );
     });
 
     return () => {
@@ -111,11 +119,14 @@ function ActiveOrders() {
 
   const isParticipant = (order) =>
     order.participants?.some(
-      (p) => String(p.userId?._id || p.userId) === String(user._id)
+      (p) =>
+        String(p.userId?._id || p.userId) ===
+        String(user._id)
     );
 
   const isAdmin = (order) =>
-    String(order.admin?._id || order.admin) === String(user._id);
+    String(order.admin?._id || order.admin) ===
+    String(user._id);
 
   const handleJoin = async (orderId) => {
     try {
@@ -125,12 +136,18 @@ function ActiveOrders() {
       });
 
       setRequestedIds((prev) =>
-        prev.includes(orderId) ? prev : [...prev, orderId]
+        prev.includes(orderId)
+          ? prev
+          : [...prev, orderId]
       );
 
       showToast("⏳ Request sent to admin");
     } catch (err) {
-      showToast(err.response?.data?.message || "Failed to join", "error");
+      showToast(
+        err.response?.data?.message ||
+          "Failed to join",
+        "error"
+      );
     }
   };
 
@@ -176,26 +193,31 @@ function ActiveOrders() {
             isParticipant(order) ||
             acceptedIds.includes(order._id);
 
-          const requested = requestedIds.includes(order._id);
+          const requested =
+            requestedIds.includes(order._id);
 
-          const isClosed = order.status === "closed";
+          const isClosed =
+            order.status === "closed";
 
-          let label, color, disabled, action;
+          let label,
+            color,
+            disabled,
+            action;
 
           if (isClosed) {
             label = "Closed";
             color = "bg-gray-400";
             disabled = true;
           } else if (admin) {
-            label = "Manage Order 👑";
-            color = "bg-[#6C5CE7]";
-            disabled = false;
-            action = () => navigate(`/chat/${order._id}`);
+            label = "Created by You 👑";
+            color = "bg-purple-600";
+            disabled = true;
           } else if (participant) {
             label = "Start Chat 💬";
             color = "bg-green-600";
             disabled = false;
-            action = () => navigate(`/chat/${order._id}`);
+            action = () =>
+              navigate(`/chat/${order._id}`);
           } else if (requested) {
             label = "Requested ⏳";
             color = "bg-gray-400";
@@ -204,7 +226,8 @@ function ActiveOrders() {
             label = "Join";
             color = "bg-[#6C5CE7]";
             disabled = false;
-            action = () => handleJoin(order._id);
+            action = () =>
+              handleJoin(order._id);
           }
 
           return (
@@ -237,20 +260,23 @@ function ActiveOrders() {
               </p>
 
               <p className="text-sm text-gray-700 mt-1">
-                ₹{order.currentAmount} / ₹{order.targetAmount}
+                ₹{order.currentAmount} / ₹
+                {order.targetAmount}
               </p>
 
               <p className="text-green-600 text-sm">
                 Need ₹
                 {Math.max(
                   0,
-                  order.targetAmount - order.currentAmount
+                  order.targetAmount -
+                    order.currentAmount
                 )}{" "}
                 more
               </p>
 
               <p className="text-xs text-gray-500 mt-1">
-                👥 {order.participants?.length || 0} joined
+                👥{" "}
+                {order.participants?.length || 0} joined
               </p>
 
               <p className="text-xs text-gray-500 mt-1">
@@ -268,7 +294,7 @@ function ActiveOrders() {
                 disabled={disabled}
                 className={`mt-3 w-full py-2 rounded-xl text-white ${color}
                 shadow-md active:scale-95 transition
-                disabled:opacity-60 disabled:cursor-not-allowed`}
+                disabled:opacity-70 disabled:cursor-not-allowed`}
               >
                 {label}
               </button>
