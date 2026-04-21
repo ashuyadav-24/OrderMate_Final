@@ -32,12 +32,12 @@ function ChatRoom() {
 
   const user = getUser();
 
-const currentUserId = String(
-  user?._id ||
-  user?.id ||
-  user?.user?._id ||
+const currentUserName = String(
+  user?.userName ||
+  user?.username ||
+  user?.name ||
   ""
-);
+).toLowerCase();
 
   const fetchOrder = async () => {
     try {
@@ -210,17 +210,14 @@ const currentUserId = String(
             );
           }
 
-          const msgSenderId = String(
-  m.senderId?._id ||
-  m.senderId?.id ||
-  m.senderId ||
-  ""
-);
+          const messageUserName = String(
+  m.userName || ""
+).toLowerCase();
 
 const isMine =
-  currentUserId &&
-  msgSenderId &&
-  currentUserId === msgSenderId;
+  currentUserName &&
+  messageUserName &&
+  currentUserName === messageUserName;
 
           return (
             <div
