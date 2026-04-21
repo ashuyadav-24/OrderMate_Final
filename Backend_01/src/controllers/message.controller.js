@@ -61,6 +61,9 @@ export const endChat = async (req, res) => {
       return res.status(403).json({ message: "Only the admin can end this chat" });
     }
 
+    // ✅ Delete all messages for this order
+    await Message.deleteMany({ orderId });
+
     // Close the order and disable chat
     order.status = "closed";
     order.isChatEnabled = false;
