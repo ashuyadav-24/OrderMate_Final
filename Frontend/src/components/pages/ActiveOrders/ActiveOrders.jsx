@@ -203,32 +203,29 @@ function ActiveOrders() {
             color,
             disabled,
             action;
-
-          if (isClosed) {
-            label = "Closed";
-            color = "bg-gray-400";
-            disabled = true;
-          } else if (admin) {
-            label = "Created by You 👑";
-            color = "bg-purple-600";
-            disabled = true;
-          } else if (participant) {
-            label = "Start Chat 💬";
-            color = "bg-green-600";
-            disabled = false;
-            action = () =>
-              navigate(`/chat/${order._id}`);
-          } else if (requested) {
-            label = "Requested ⏳";
-            color = "bg-gray-400";
-            disabled = true;
-          } else {
-            label = "Join";
-            color = "bg-[#6C5CE7]";
-            disabled = false;
-            action = () =>
-              handleJoin(order._id);
-          }
+if (isClosed) {
+  label = "Closed";
+  color = "bg-gray-400";
+  disabled = true;
+} else if (admin) {
+  label = "Created by You 👑";
+  color = "bg-[#6C5CE7]";
+  disabled = true;
+} else if (participant) {
+  label = "Start Chat 💬";
+  color = "bg-green-600";
+  disabled = false;
+  action = () => navigate(`/chat/${order._id}`);
+} else if (requested) {
+  label = "Requested ⏳";
+  color = "bg-gray-400";
+  disabled = true;
+} else {
+  label = "Join";
+  color = "bg-[#6C5CE7]";
+  disabled = false;
+  action = () => handleJoin(order._id);
+}
 
           return (
             <div
