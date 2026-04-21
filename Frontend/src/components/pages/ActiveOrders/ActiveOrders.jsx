@@ -77,25 +77,22 @@ function ActiveOrders() {
     socket.emit("joinUserRoom", user._id);
 
     socket.on("requestAccepted", async ({ orderId }) => {
-  showToast("🎉 Request accepted! Start chat now.", "success");
+      showToast("🎉 Request accepted! Start chat now.", "success");
 
-  // remove pending requested state
-  setRequestedIds((prev) =>
-    prev.filter((id) => id !== orderId)
-  );
+      setRequestedIds((prev) =>
+        prev.filter((id) => id !== orderId)
+      );
 
-  // force accepted state for Start Chat button
-  setAcceptedIds((prev) =>
-    prev.includes(orderId)
-      ? prev
-      : [...prev, orderId]
-  );
+      setAcceptedIds((prev) =>
+        prev.includes(orderId)
+          ? prev
+          : [...prev, orderId]
+      );
 
-  await fetchOrders();
+      await fetchOrders();
 
-  // Optional auto redirect after accept
-  navigate(`/chat/${orderId}`);
-});
+      navigate(`/chat/${orderId}`);
+    });
 
     socket.on("requestDeclined", ({ orderId }) => {
       showToast("❌ Request declined", "error");
@@ -161,8 +158,7 @@ function ActiveOrders() {
       {/* Toast */}
       {toast && (
         <div
-          className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-xl shadow-lg text-white text-sm font-medium
-          ${
+          className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-xl shadow-lg text-white text-sm font-medium ${
             toast.type === "success"
               ? "bg-green-500"
               : toast.type === "error"
@@ -208,29 +204,32 @@ function ActiveOrders() {
             color,
             disabled,
             action;
-if (isClosed) {
-  label = "Closed";
-  color = "bg-gray-400";
-  disabled = true;
-} else if (admin) {
-  label = "Created by You 👑";
-  color = "bg-[#6C5CE7]";
-  disabled = true;
-} else if (participant) {
-  label = "Start Chat 💬";
-  color = "bg-green-600";
-  disabled = false;
-  action = () => navigate(`/chat/${order._id}`);
-} else if (requested) {
-  label = "Requested ⏳";
-  color = "bg-gray-400";
-  disabled = true;
-} else {
-  label = "Join";
-  color = "bg-[#6C5CE7]";
-  disabled = false;
-  action = () => handleJoin(order._id);
-}
+
+          if (isClosed) {
+            label = "Closed";
+            color = "bg-gray-400";
+            disabled = true;
+          } else if (admin) {
+            label = "Created by You 👑";
+            color = "bg-[#6C5CE7]";
+            disabled = true;
+          } else if (participant) {
+            label = "Start Chat 💬";
+            color = "bg-green-600";
+            disabled = false;
+            action = () =>
+              navigate(`/chat/${order._id}`);
+          } else if (requested) {
+            label = "Requested ⏳";
+            color = "bg-gray-400";
+            disabled = true;
+          } else {
+            label = "Join";
+            color = "bg-[#6C5CE7]";
+            disabled = false;
+            action = () =>
+              handleJoin(order._id);
+          }
 
           return (
             <div
@@ -244,8 +243,7 @@ if (isClosed) {
                 </h2>
 
                 <span
-                  className={`text-xs px-2 py-1 rounded-full font-medium
-                  ${
+                  className={`text-xs px-2 py-1 rounded-full font-medium ${
                     order.status === "open"
                       ? "bg-green-100 text-green-700"
                       : order.status === "matched"
@@ -305,17 +303,16 @@ if (isClosed) {
         })
       )}
 
-      {/* Footer */}
-      {/* Footer */}
-<div className="mt-8 pb-6 text-center">
-  <h2 className="text-xl font-bold text-[#6C5CE7]">
-    OrderMate
-  </h2>
+      {/* Dynamic Footer */}
+      <div className="mt-8 pb-6 text-center">
+        <h2 className="text-xl font-bold text-[#6C5CE7]">
+          OrderMate
+        </h2>
 
-  <p className="text-xs text-gray-500">
-    Order together. Save together.
-  </p>
-</div>
+        <p className="text-xs text-gray-500">
+          Order together. Save together.
+        </p>
+      </div>
     </div>
   );
 }

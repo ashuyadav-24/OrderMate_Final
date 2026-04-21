@@ -33,22 +33,30 @@ function ChatRoom() {
   const user = getUser();
 
   const fetchOrder = async () => {
-    const res = await API.get(`/orders/${orderId}`);
-    setOrder(res.data);
+    try {
+      const res = await API.get(`/orders/${orderId}`);
+      setOrder(res.data);
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   const loadMessages = async () => {
-    const res = await API.get(`/chat/${orderId}`);
+    try {
+      const res = await API.get(`/chat/${orderId}`);
 
-    setMessages(
-      res.data.map((m) => ({
-        _id: m._id,
-        text: m.text,
-        senderId: m.sender?._id,
-        userName: m.sender?.userName,
-        createdAt: m.createdAt,
-      }))
-    );
+      setMessages(
+        res.data.map((m) => ({
+          _id: m._id,
+          text: m.text,
+          senderId: m.sender?._id,
+          userName: m.sender?.userName,
+          createdAt: m.createdAt,
+        }))
+      );
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   useEffect(() => {
@@ -58,20 +66,20 @@ function ChatRoom() {
     socket.emit("joinOrderRoom", orderId);
 
     socket.on("newMessage", (data) => {
-  setMessages((prev) => [
-    ...prev,
-    {
-      _id: data._id || Date.now(),
-      text: data.text,
-      senderId: data.sender?._id || data.senderId,
-      userName:
-        data.sender?.userName ||
-        data.userName ||
-        data.sender?.name ||
-        "User",
-    },
-  ]);
-});
+      setMessages((prev) => [
+        ...prev,
+        {
+          _id: data._id || Date.now(),
+          text: data.text,
+          senderId: data.sender?._id || data.senderId,
+          userName:
+            data.sender?.userName ||
+            data.userName ||
+            data.sender?.name ||
+            "User",
+        },
+      ]);
+    });
 
     socket.on("memberLeft", ({ userName, name }) => {
       setMessages((prev) => [
@@ -82,6 +90,12 @@ function ChatRoom() {
           text: `@${userName || name} left the chat`,
         },
       ]);
+
+      fetchOrder();
+    });
+
+    socket.on("requestAccepted", () => {
+      fetchOrder();
     });
 
     socket.on("chatEnded", () => {
@@ -91,9 +105,10 @@ function ChatRoom() {
     return () => {
       socket.off("newMessage");
       socket.off("memberLeft");
+      socket.off("requestAccepted");
       socket.off("chatEnded");
     };
-  }, []);
+  }, [orderId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({
@@ -113,8 +128,12 @@ function ChatRoom() {
   };
 
   const leaveChat = async () => {
-    await API.post(`/orders/leave/${orderId}`);
-    navigate("/active-orders");
+    try {
+      await API.post(`/orders/leave/${orderId}`);
+      navigate("/active-orders");
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   const isAdmin =
