@@ -33,6 +33,7 @@ const userSchema = new mongoose.Schema({
 
     userName: {
         type: String,
+        sparse: true,
         unique: true
     },
      otp: {
