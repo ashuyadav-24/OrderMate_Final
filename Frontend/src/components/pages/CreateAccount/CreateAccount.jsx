@@ -28,7 +28,8 @@ function CreateAccount() {
         userName,
       });
 
-      console.log("PROFILE RESPONSE:", res.data);
+      // ✅ Save updated user to localStorage so it persists across tabs
+      localStorage.setItem("user", JSON.stringify(res.data.user));
 
       navigate("/home");
 

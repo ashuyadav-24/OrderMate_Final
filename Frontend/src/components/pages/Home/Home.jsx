@@ -6,7 +6,16 @@ import { Bell, Power } from "lucide-react";
 
 function Home() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  // ✅ Read from localStorage first — instant load, no waiting for API
+  const getStoredUser = () => {
+    try {
+      const raw = localStorage.getItem("user");
+      if (!raw || raw === "undefined" || raw === "null") return null;
+      const p = JSON.parse(raw);
+      return p._id ? p : (p.user || null);
+    } catch { return null; }
+  };
+  const [user, setUser] = useState(getStoredUser);
   const [requests, setRequests] = useState([]);
   const [showBell, setShowBell] = useState(false);
   const [toast, setToast] = useState(null);
@@ -23,8 +32,11 @@ function Home() {
     try {
       const res = await API.get("/auth/me");
       setUser(res.data.user);
+      // ✅ Keep localStorage in sync with latest user data from server
+      localStorage.setItem("user", JSON.stringify(res.data.user));
     } catch (err) {
-      navigate("/");
+      // Only redirect if no local user either
+      if (!getStoredUser()) navigate("/");
     }
   };
 
