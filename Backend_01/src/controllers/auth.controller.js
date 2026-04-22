@@ -108,6 +108,17 @@ export const verifyOTP = async (req, res) => {
       message: "OTP verified successfully",
       token,
       isNewUser: !user.isProfileComplete,
+      // ✅ Always return user object so frontend can save it
+      user: {
+        _id: user._id,
+        email: user.email,
+        name: user.name,
+        userName: user.userName,
+        collegeName: user.collegeName,
+        hostelName: user.hostelName,
+        isVerified: user.isVerified,
+        isProfileComplete: user.isProfileComplete,
+      },
     });
 
   } catch (error) {
