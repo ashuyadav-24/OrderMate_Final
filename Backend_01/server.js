@@ -18,10 +18,12 @@ const app = express();
 const httpServer = createServer(app);
 
 // ✅ Create socket.io instance
-// ✅ Allow all Vercel preview URLs + production URL
+// ✅ Allow all Vercel preview URLs + production URL + custom domain
 const allowedOrigins = [
   "https://order-mate-final.vercel.app",
-  /https:\/\/order-mate-final.*\.vercel\.app/,  // covers preview deployments
+  "https://ordermate.co.in",
+  "https://www.ordermate.co.in",
+  /https:\/\/order-mate-final.*\.vercel\.app/,
 ];
 
 const io = new Server(httpServer, {
@@ -31,6 +33,7 @@ const io = new Server(httpServer, {
     credentials: true,
   },
 });
+
 // ✅ Global so controllers can emit events directly
 global.io = io;
 
@@ -38,21 +41,28 @@ global.io = io;
 socketHandler(io);
 
 // ── Middlewares ───────────────────────────────
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, Postman)
-    if (!origin) return callback(null, true);
-    // Allow any vercel.app subdomain for this project + localhost
-    if (
-      origin.includes("order-mate-final") ||
-      origin.includes("localhost")
-    ) {
-      return callback(null, true);
-    }
-    callback(new Error("Not allowed by CORS"));
-  },
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, Postman)
+      if (!origin) return callback(null, true);
+
+      // Allow Vercel + localhost + custom domain
+      if (
+        origin.includes("order-mate-final") ||
+        origin.includes("localhost") ||
+        origin === "https://ordermate.co.in" ||
+        origin === "https://www.ordermate.co.in"
+      ) {
+        return callback(null, true);
+      }
+
+      callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
 // ── Database ──────────────────────────────────
@@ -69,6 +79,7 @@ app.get("/", (req, res) => res.send("Server HomePage"));
 
 // ✅ Use httpServer.listen — NOT app.listen
 const PORT = process.env.PORT || 8002;
+
 httpServer.listen(PORT, () => {
   console.log(`🚀 Server running at port: ${PORT}`);
 });
