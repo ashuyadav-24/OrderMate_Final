@@ -32,27 +32,20 @@ function OtpVerification() {
     try {
       setLoading(true);
       const otp = inputs.current.map((input) => input.value).join("");
-
       if (otp.length !== 4) {
         showToast("Please enter the full 4-digit OTP");
         return;
       }
-
       const email = localStorage.getItem("email");
       const res = await API.post("/auth/verify-otp", { email, otp });
-
       const { token, isNewUser, user } = res.data;
-
-      // ✅ Save token + user — this is what prevents logout on tab close
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
-
       if (isNewUser) {
         navigate("/createAccount");
       } else {
         navigate("/home");
       }
-
     } catch (err) {
       console.log(err);
       showToast(err.response?.data?.message || "Invalid OTP. Please try again.");
@@ -61,14 +54,12 @@ function OtpVerification() {
     }
   };
 
-  // ✅ Resend OTP
   const handleResend = async () => {
     try {
       setResending(true);
       const email = localStorage.getItem("email");
       await API.post("/auth/send-otp", { email });
       showToast("New OTP sent to your email!", "success");
-      // Clear inputs
       inputs.current.forEach((input) => (input.value = ""));
       inputs.current[0]?.focus();
     } catch (err) {
@@ -79,39 +70,129 @@ function OtpVerification() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#EEF2F7] to-[#DDE3EC] flex items-center justify-center px-6">
+    <div style={{ minHeight: '100vh', background: '#080810', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px', position: 'relative' }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
 
-      {/* Toast */}
+        .otp-grid-bg {
+          position: fixed; inset: 0;
+          background-image:
+            linear-gradient(rgba(139,92,246,0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(139,92,246,0.04) 1px, transparent 1px);
+          background-size: 48px 48px;
+          pointer-events: none;
+        }
+        .otp-orb {
+          position: fixed; top: -120px; right: -120px;
+          width: 400px; height: 400px;
+          background: radial-gradient(circle, rgba(109,40,217,0.25) 0%, transparent 70%);
+          pointer-events: none;
+        }
+        .otp-orb2 {
+          position: fixed; bottom: -80px; left: -80px;
+          width: 300px; height: 300px;
+          background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%);
+          pointer-events: none;
+        }
+        .otp-logo {
+          font-family: 'Syne', sans-serif;
+          font-weight: 800; font-size: 22px;
+          background: linear-gradient(135deg, #a78bfa, #60a5fa);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .otp-card {
+          background: rgba(15,15,25,0.88);
+          border: 1px solid rgba(139,92,246,0.18);
+          backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+          border-radius: 24px; padding: 44px 40px;
+          width: 100%; max-width: 420px; position: relative; overflow: hidden;
+        }
+        .otp-card::before {
+          content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(167,139,250,0.5), transparent);
+        }
+        .otp-title {
+          font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 700;
+          color: #f1f5f9; letter-spacing: -0.5px; margin-bottom: 6px;
+        }
+        .otp-sub { font-size: 13px; color: #64748b; margin-bottom: 36px; line-height: 1.6; }
+        .otp-highlight { color: #a78bfa; font-weight: 500; }
+
+        .otp-box {
+          width: 64px; height: 68px;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 14px;
+          text-align: center;
+          font-family: 'Syne', sans-serif;
+          font-size: 24px; font-weight: 700;
+          color: #e2e8f0;
+          outline: none;
+          transition: all 0.2s ease;
+          caret-color: #a78bfa;
+        }
+        .otp-box:focus {
+          border-color: rgba(139,92,246,0.7);
+          background: rgba(139,92,246,0.08);
+          box-shadow: 0 0 0 3px rgba(139,92,246,0.12), 0 0 20px rgba(139,92,246,0.15);
+        }
+        .verify-btn {
+          width: 100%; padding: 15px; border-radius: 12px; border: none; cursor: pointer;
+          font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+          color: #fff; background: linear-gradient(135deg, #7c3aed, #4f46e5);
+          transition: all 0.2s ease; position: relative; overflow: hidden; margin-top: 28px;
+        }
+        .verify-btn::before {
+          content: ''; position: absolute; inset: 0;
+          background: linear-gradient(135deg, #8b5cf6, #6366f1);
+          opacity: 0; transition: opacity 0.2s ease;
+        }
+        .verify-btn:hover::before { opacity: 1; }
+        .verify-btn:active { transform: scale(0.98); }
+        .verify-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .verify-btn span { position: relative; z-index: 1; }
+        .resend-row { text-align: center; margin-top: 22px; font-size: 13px; color: #4b5563; }
+        .resend-link { color: #a78bfa; font-weight: 500; cursor: pointer; }
+        .resend-link:hover { text-decoration: underline; }
+        .resend-link.disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .otp-toast {
+          position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+          z-index: 999; padding: 12px 22px; border-radius: 12px;
+          font-size: 13px; font-weight: 500; color: #fff;
+          font-family: 'DM Sans', sans-serif;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+          animation: slideDown 0.3s ease;
+        }
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+          to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+      `}</style>
+
+      <div className="otp-grid-bg" />
+      <div className="otp-orb" />
+      <div className="otp-orb2" />
+
       {toast && (
-        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-xl shadow-lg text-white text-sm font-medium max-w-xs text-center
-          ${toast.type === "success" ? "bg-green-500" : "bg-red-500"}`}>
+        <div className="otp-toast" style={{ background: toast.type === 'success' ? 'linear-gradient(135deg,#059669,#047857)' : 'linear-gradient(135deg,#dc2626,#b91c1c)' }}>
           {toast.msg}
         </div>
       )}
 
-      {/* Logo */}
-      <div className="absolute top-6 right-6 text-right">
-        <h2 className="text-2xl font-bold text-[#6C5CE7]">OrderMate</h2>
-        <p className="text-xs text-gray-500 mt-1">Order together. Save together.</p>
+      <div style={{ position: 'absolute', top: 24, right: 28, textAlign: 'right' }}>
+        <div className="otp-logo">OrderMate</div>
+        <div style={{ fontSize: 11, color: '#374151', marginTop: 2 }}>Order together. Save together.</div>
       </div>
 
-      {/* Card */}
-      <div className="w-full max-w-md p-10 rounded-3xl
-        bg-[#E6EAF0]/80 backdrop-blur-xl
-        shadow-[12px_12px_24px_#C5C9D0,-12px_-12px_24px_#FFFFFF]">
-
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">Verify OTP</h1>
-          <p className="text-sm text-gray-500 mt-2">
-            Enter the 4-digit code sent to{" "}
-            <span className="text-[#6C5CE7] font-medium">
-              {localStorage.getItem("email")}
-            </span>
-          </p>
+      <div className="otp-card">
+        <div className="otp-title">Verify your email</div>
+        <div className="otp-sub">
+          Enter the 4-digit code sent to{" "}
+          <span className="otp-highlight">{localStorage.getItem("email")}</span>
         </div>
 
-        {/* OTP Inputs */}
-        <div className="flex justify-center gap-4 mb-6">
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginBottom: 8 }}>
           {[...Array(4)].map((_, index) => (
             <input
               key={index}
@@ -122,36 +203,24 @@ function OtpVerification() {
               ref={(el) => (inputs.current[index] = el)}
               onChange={(e) => handleChange(e, index)}
               onKeyDown={(e) => handleKeyDown(e, index)}
-              className="w-14 h-14 text-center text-xl font-semibold text-gray-800 rounded-xl outline-none
-              bg-[#E6EAF0]
-              shadow-[inset_6px_6px_12px_#C5C9D0,inset_-6px_-6px_12px_#FFFFFF]
-              focus:shadow-[inset_3px_3px_6px_#C5C9D0,inset_-3px_-3px_6px_#FFFFFF]"
+              className="otp-box"
             />
           ))}
         </div>
 
-        {/* Verify Button */}
-        <button
-          onClick={handleVerifyOTP}
-          disabled={loading}
-          className="w-full text-sm font-semibold py-4 rounded-xl
-          text-white bg-[#6C5CE7]
-          shadow-[6px_6px_12px_#C5C9D0,-6px_-6px_12px_#FFFFFF]
-          active:shadow-[inset_6px_6px_12px_#C5C9D0,inset_-6px_-6px_12px_#FFFFFF]
-          active:scale-95 transition duration-150 disabled:opacity-60">
-          {loading ? "Verifying..." : "Verify OTP"}
+        <button onClick={handleVerifyOTP} disabled={loading} className="verify-btn">
+          <span>{loading ? "Verifying..." : "Verify OTP →"}</span>
         </button>
 
-        {/* Resend */}
-        <p className="text-sm text-gray-500 text-center mt-6">
+        <div className="resend-row">
           Didn't receive code?{" "}
           <span
             onClick={!resending ? handleResend : undefined}
-            className={`text-[#6C5CE7] font-medium cursor-pointer ${resending ? "opacity-50" : "hover:underline"}`}>
+            className={`resend-link ${resending ? 'disabled' : ''}`}
+          >
             {resending ? "Sending..." : "Resend OTP"}
           </span>
-        </p>
-
+        </div>
       </div>
     </div>
   );

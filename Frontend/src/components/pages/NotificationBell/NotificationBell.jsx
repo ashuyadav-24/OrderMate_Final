@@ -4,11 +4,6 @@ import { API } from "../../../api/api";
 import { socket } from "../../../socket";
 import { useNavigate } from "react-router-dom";
 
-// ─────────────────────────────────────────────
-// 🔔 NOTIFICATION BELL — shared across all pages
-// Shows pending join requests for admin
-// Works on Home, ActiveOrders, ChatRoom etc.
-// ─────────────────────────────────────────────
 function NotificationBell() {
   const [requests, setRequests] = useState([]);
   const [open, setOpen] = useState(false);
@@ -36,7 +31,6 @@ function NotificationBell() {
     return () => clearInterval(interval);
   }, []);
 
-  // Listen for new requests via socket
   useEffect(() => {
     socket.on("newRequest", ({ name, userName }) => {
       showToast(`📩 ${name} (@${userName}) wants to join!`, "info");
@@ -45,7 +39,6 @@ function NotificationBell() {
     return () => socket.off("newRequest");
   }, []);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e) => {
       if (bellRef.current && !bellRef.current.contains(e.target)) {
@@ -79,53 +72,121 @@ function NotificationBell() {
 
   return (
     <>
-      {/* Toast */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700&family=DM+Sans:wght@400;500;600&display=swap');
+
+        .nb-btn {
+          padding: 10px; border-radius: 12px; border: none; cursor: pointer;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.08);
+          display: flex; align-items: center; justify-content: center;
+          transition: all 0.2s ease; position: relative;
+        }
+        .nb-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(139,92,246,0.35); }
+        .nb-btn:active { transform: scale(0.95); }
+
+        .nb-badge {
+          position: absolute; top: -1px; right: -1px;
+          width: 16px; height: 16px; border-radius: 50%;
+          background: #ef4444; color: #fff;
+          font-size: 9px; font-weight: 700;
+          display: flex; align-items: center; justify-content: center;
+          font-family: 'DM Sans', sans-serif;
+        }
+
+        .nb-dropdown {
+          position: absolute; right: 0; top: calc(100% + 10px);
+          width: 288px;
+          background: rgba(10,10,18,0.97);
+          border: 1px solid rgba(139,92,246,0.2);
+          backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+          border-radius: 18px; padding: 16px; z-index: 500;
+          box-shadow: 0 24px 48px rgba(0,0,0,0.6);
+          font-family: 'DM Sans', sans-serif;
+        }
+        .nb-dropdown::before {
+          content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(167,139,250,0.4), transparent);
+        }
+        .nb-drop-title {
+          font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700;
+          color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px;
+        }
+        .nb-empty { font-size: 13px; color: '#374151'; }
+        .nb-req {
+          padding-bottom: 14px; margin-bottom: 14px;
+          border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .nb-req:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .nb-req-text { font-size: 13px; color: #cbd5e1; line-height: 1.5; }
+        .nb-platform { color: #a78bfa; font-weight: 600; }
+        .nb-btns { display: flex; gap: 8px; margin-top: 10px; }
+        .nb-accept {
+          flex: 1; padding: 8px; border-radius: 10px; border: none;
+          background: rgba(5,150,105,0.18); color: #34d399;
+          border: 1px solid rgba(52,211,153,0.2);
+          font-size: 12px; font-weight: 600; cursor: pointer;
+          font-family: 'DM Sans', sans-serif; transition: all 0.2s ease;
+        }
+        .nb-accept:hover { background: rgba(5,150,105,0.3); }
+        .nb-decline {
+          flex: 1; padding: 8px; border-radius: 10px; border: none;
+          background: rgba(220,38,38,0.12); color: #f87171;
+          border: 1px solid rgba(248,113,113,0.18);
+          font-size: 12px; font-weight: 600; cursor: pointer;
+          font-family: 'DM Sans', sans-serif; transition: all 0.2s ease;
+        }
+        .nb-decline:hover { background: rgba(220,38,38,0.22); }
+
+        .nb-toast {
+          position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+          z-index: 9999; padding: 12px 22px; border-radius: 12px;
+          font-size: 13px; font-weight: 500; color: #fff;
+          font-family: 'DM Sans', sans-serif;
+          max-width: 300px; text-align: center;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+          animation: nbSlide 0.3s ease;
+        }
+        @keyframes nbSlide {
+          from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+          to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+      `}</style>
+
       {toast && (
-        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[999] px-5 py-2.5 rounded-xl shadow-lg text-white text-sm font-medium max-w-xs text-center
-          ${toast.type === "error" ? "bg-red-500" : "bg-[#6C5CE7]"}`}>
+        <div className="nb-toast" style={{
+          background: toast.type === 'error'
+            ? 'linear-gradient(135deg,#dc2626,#b91c1c)'
+            : 'linear-gradient(135deg,#7c3aed,#4f46e5)'
+        }}>
           {toast.msg}
         </div>
       )}
 
-      <div ref={bellRef} className="relative">
-        <button
-          onClick={() => setOpen(!open)}
-          className="relative p-2 rounded-xl bg-[#E6EAF0]
-            shadow-[4px_4px_8px_#C5C9D0,-4px_-4px_8px_#FFFFFF]
-            active:shadow-[inset_4px_4px_8px_#C5C9D0,inset_-4px_-4px_8px_#FFFFFF] transition">
-          <Bell size={22} className="text-[#6C5CE7]" />
+      <div ref={bellRef} style={{ position: 'relative' }}>
+        <button onClick={() => setOpen(!open)} className="nb-btn">
+          <Bell size={20} color="#a78bfa" />
           {requests.length > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold">
-              {requests.length}
-            </span>
+            <span className="nb-badge">{requests.length}</span>
           )}
         </button>
 
         {open && (
-          <div className="absolute right-0 mt-3 w-72 p-4 rounded-2xl z-50
-            bg-[#E6EAF0] shadow-[8px_8px_16px_#C5C9D0,-8px_-8px_16px_#FFFFFF]">
-            <h2 className="font-semibold text-gray-800 mb-3 text-sm">Join Requests</h2>
+          <div className="nb-dropdown">
+            <div className="nb-drop-title">Join Requests</div>
             {requests.length === 0 ? (
-              <p className="text-sm text-gray-400">No pending requests</p>
+              <p style={{ fontSize: 13, color: '#374151' }}>No pending requests</p>
             ) : (
               requests.map((req) => (
-                <div key={req._id} className="mb-4 pb-4 border-b border-gray-200 last:border-0 last:mb-0 last:pb-0">
-                  <p className="text-sm text-gray-700">
-                    <span className="font-medium">{req.userId?.name}</span>
+                <div key={req._id} className="nb-req">
+                  <div className="nb-req-text">
+                    <strong style={{ color: '#e2e8f0' }}>{req.userId?.name}</strong>
                     {" "}wants to join{" "}
-                    <span className="text-[#6C5CE7] font-medium capitalize">{req.orderId?.platform}</span>
-                  </p>
-                  <div className="flex gap-2 mt-2">
-                    <button
-                      onClick={() => handleAccept(req)}
-                      className="flex-1 py-1.5 bg-green-500 text-white text-xs rounded-lg font-medium active:scale-95 transition">
-                      ✓ Accept
-                    </button>
-                    <button
-                      onClick={() => handleDecline(req)}
-                      className="flex-1 py-1.5 bg-red-400 text-white text-xs rounded-lg font-medium active:scale-95 transition">
-                      ✕ Decline
-                    </button>
+                    <span className="nb-platform capitalize">{req.orderId?.platform}</span>
+                  </div>
+                  <div className="nb-btns">
+                    <button onClick={() => handleAccept(req)} className="nb-accept">✓ Accept</button>
+                    <button onClick={() => handleDecline(req)} className="nb-decline">✕ Decline</button>
                   </div>
                 </div>
               ))
