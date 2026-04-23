@@ -240,7 +240,7 @@ function CreateOrder() {
               <span className="prefix">₹</span>
               <input
                 type="number"
-                placeholder="500"
+                placeholder="Required Amount"
                 value={form.targetAmount}
                 onChange={(e) => setForm({ ...form, targetAmount: e.target.value })}
                 className="co-input"
@@ -252,7 +252,7 @@ function CreateOrder() {
             <div className="co-input-prefix">
               <input
                 type="number"
-                placeholder="30 min"
+                placeholder="Set Time"
                 value={form.duration}
                 onChange={(e) => setForm({ ...form, duration: e.target.value })}
                 className="co-input"
