@@ -3,7 +3,7 @@ import axios from "axios";
 export const API = axios.create({
   baseURL: "https://ordermate-final-3.onrender.com/api",
   withCredentials: true,
-  timeout: 10000,
+  timeout: 60000,
 });
 
 API.interceptors.request.use((req) => {
