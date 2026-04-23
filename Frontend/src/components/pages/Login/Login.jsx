@@ -1,10 +1,17 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { API } from "../../../api/api.js";
 
 function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
+  useEffect(() => {
+  const token = localStorage.getItem("token");
+
+  if (token) {
+    navigate("/home");
+  }
+}, []);
 
   // 🔥 Send OTP function (connects to backend)
   const handleSendOTP = async () => {
