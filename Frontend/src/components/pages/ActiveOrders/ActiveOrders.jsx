@@ -250,7 +250,19 @@ function ActiveOrders() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28, position: 'relative', zIndex: 10 }}>
         <div className="ao-title">Active Orders</div>
-        <NotificationBell />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button
+            onClick={() => navigate('/')}
+            style={{
+              width: 36, height: 36, borderRadius: 10,
+              border: '1px solid rgba(255,255,255,0.08)',
+              background: 'rgba(255,255,255,0.04)', color: '#94a3b8',
+              fontSize: 16, cursor: 'pointer', display: 'flex',
+              alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease'
+            }}
+          >🏠</button>
+          <NotificationBell />
+        </div>
       </div>
 
       {/* Orders */}
