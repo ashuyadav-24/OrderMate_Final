@@ -248,7 +248,7 @@ function CreateOrder() {
             </div>
           </div>
           <div className="co-field">
-            <label className="co-label">Duration</label>
+            <label className="co-label">Duration(in mins)</label>
             <div className="co-input-prefix">
               <input
                 type="number"
