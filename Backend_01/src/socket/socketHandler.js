@@ -80,7 +80,7 @@ const socketHandler = (io) => {
         console.error("joinOrderRoom error:", err);
       }
     });
-
+      
     // ─────────────────────────────────────────
     // 📨 SEND MESSAGE
     // Saves message to DB + broadcasts to room
