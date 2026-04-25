@@ -235,7 +235,7 @@ function CreateOrder() {
         {/* Amount + Duration in a row */}
         <div className="co-row">
           <div className="co-field">
-            <label className="co-label">Target Amount</label>
+            <label className="co-label">Required Amount</label>
             <div className="co-input-prefix">
               <span className="prefix">₹</span>
               <input
