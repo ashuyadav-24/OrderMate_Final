@@ -56,6 +56,7 @@ const socketHandler = (io) => {
     // ─────────────────────────────────────────
     // 💬 JOIN ORDER CHAT ROOM
     // When user opens ChatRoom page
+    // Admin is also allowed — they created the order and manage the chat
     // ─────────────────────────────────────────
     socket.on("joinOrderRoom", async (orderId) => {
       try {
@@ -63,12 +64,13 @@ const socketHandler = (io) => {
 
         if (!order) return;
 
-        // Only participants can join the chat room
+        // ✅ Allow admin OR any participant to join the room
+        const isAdmin = order.admin.toString() === socket.userId;
         const isMember = order.participants.some(
           (p) => p.userId.toString() === socket.userId
         );
 
-        if (!isMember) {
+        if (!isAdmin && !isMember) {
           socket.emit("error", { message: "Not a participant" });
           return;
         }
@@ -80,10 +82,11 @@ const socketHandler = (io) => {
         console.error("joinOrderRoom error:", err);
       }
     });
-      
+
     // ─────────────────────────────────────────
     // 📨 SEND MESSAGE
     // Saves message to DB + broadcasts to room
+    // Admin OR participant can send messages
     // ─────────────────────────────────────────
     socket.on("sendMessage", async ({ orderId, text }) => {
       try {
@@ -96,12 +99,13 @@ const socketHandler = (io) => {
           return;
         }
 
-        // Verify sender is a participant
+        // ✅ Allow admin OR any participant to send messages
+        const isAdmin = order.admin.toString() === socket.userId;
         const isMember = order.participants.some(
           (p) => p.userId.toString() === socket.userId
         );
 
-        if (!isMember) {
+        if (!isAdmin && !isMember) {
           socket.emit("error", { message: "Not a participant" });
           return;
         }
@@ -119,18 +123,16 @@ const socketHandler = (io) => {
 
         // 📡 Broadcast to everyone in the room (including sender)
         io.to(orderId).emit("newMessage", {
-  _id: message._id,
-  text: message.text,
-
-  senderId: message.sender._id,
-  sender: {
-    _id: message.sender._id,
-    name: message.sender.name,
-    userName: message.sender.userName,
-  },
-
-  createdAt: message.createdAt,
-});
+          _id: message._id,
+          text: message.text,
+          senderId: message.sender._id,
+          sender: {
+            _id: message.sender._id,
+            name: message.sender.name,
+            userName: message.sender.userName,
+          },
+          createdAt: message.createdAt,
+        });
 
       } catch (err) {
         console.error("sendMessage error:", err);
