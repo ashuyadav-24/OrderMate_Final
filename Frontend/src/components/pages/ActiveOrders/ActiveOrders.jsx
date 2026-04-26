@@ -9,7 +9,6 @@ function ActiveOrders() {
   const [requestedIds, setRequestedIds] = useState(
     () => JSON.parse(localStorage.getItem("requestedIds") || "[]")
   );
-  const [acceptedIds, setAcceptedIds] = useState([]);
   const [time, setTime] = useState(Date.now());
   const [toast, setToast] = useState(null);
   const navigate = useNavigate();
@@ -39,7 +38,21 @@ function ActiveOrders() {
   const fetchOrders = async () => {
     try {
       const res = await API.get("/orders");
-      setOrders(res.data || []);
+      const fetchedOrders = res.data || [];
+      setOrders(fetchedOrders);
+
+      // Auto-clean requestedIds: if user is already a participant, remove from pending list
+      setRequestedIds((prev) => {
+        const cleaned = prev.filter((id) => {
+          const order = fetchedOrders.find((o) => o._id === id);
+          if (!order) return false;
+          const alreadyIn = order.participants?.some(
+            (p) => String(p.userId?._id || p.userId) === String(user._id)
+          );
+          return !alreadyIn;
+        });
+        return cleaned;
+      });
     } catch (err) {
       console.log(err);
     }
@@ -57,14 +70,13 @@ function ActiveOrders() {
   }, []);
 
   useEffect(() => {
+    if (!user._id) return;
     socket.emit("joinUserRoom", user._id);
 
     socket.on("requestAccepted", async ({ orderId }) => {
-      showToast("🎉 Request accepted! Start chat now.", "success");
+      showToast("🎉 Request accepted! You can now start the chat.", "success");
       setRequestedIds((prev) => prev.filter((id) => id !== orderId));
-      setAcceptedIds((prev) => prev.includes(orderId) ? prev : [...prev, orderId]);
       await fetchOrders();
-      setTimeout(() => navigate(`/chat/${orderId}`), 500);
     });
 
     socket.on("requestDeclined", ({ orderId }) => {
@@ -76,7 +88,7 @@ function ActiveOrders() {
       socket.off("requestAccepted");
       socket.off("requestDeclined");
     };
-  }, []);
+  }, [user._id]);
 
   const getTimeLeft = (expiresAt) => {
     const diff = new Date(expiresAt) - time;
@@ -149,7 +161,6 @@ function ActiveOrders() {
           font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700;
           color: #e2e8f0; text-transform: capitalize; letter-spacing: -0.3px;
         }
-        .ao-hostel { font-size: 12px; color: '#374151'; margin-top: 2px; }
         .ao-amount { font-size: 15px; color: #cbd5e1; margin-top: 8px; font-weight: 500; }
         .ao-need { font-size: 13px; color: #34d399; margin-top: 4px; }
         .ao-meta {
@@ -157,7 +168,6 @@ function ActiveOrders() {
         }
         .ao-meta-item { font-size: 12px; color: #374151; display: flex; align-items: center; gap: 4px; }
         .ao-meta-item span { color: #64748b; }
-        .ao-by { font-size: 11px; color: '#1f2937'; margin-top: 6px; }
 
         .ao-badge {
           padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
@@ -204,7 +214,7 @@ function ActiveOrders() {
         }
         .ao-empty-icon { font-size: 48px; margin-bottom: 16px; }
         .ao-empty-title { font-size: 18px; color: #374151; font-weight: 700; }
-        .ao-empty-sub { font-size: 13px; color: '#1f2937'; margin-top: 6px; }
+        .ao-empty-sub { font-size: 13px; color: #1f2937; margin-top: 6px; }
 
         .ao-toast {
           position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
@@ -228,7 +238,7 @@ function ActiveOrders() {
           background: linear-gradient(135deg, #a78bfa, #60a5fa);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
         }
-        .ao-footer-tag { font-size: 11px; color: '#1f2937'; margin-top: 4px; }
+        .ao-footer-tag { font-size: 11px; color: #1f2937; margin-top: 4px; }
         .ao-divider { height: 1px; background: rgba(255,255,255,0.04); margin: 8px 0; }
       `}</style>
 
@@ -276,9 +286,11 @@ function ActiveOrders() {
         ) : (
           orders.map((order) => {
             const admin = isAdmin(order);
-            const participant = isParticipant(order) || acceptedIds.includes(order._id);
+            const participant = isParticipant(order);
             const requested = requestedIds.includes(order._id);
             const isClosed = order.status === "closed";
+            // ✅ Use isChatEnabled from DB — reliable even after page refresh or re-navigation
+            const chatReady = order.isChatEnabled === true;
 
             let label, btnClass, disabled, action;
 
@@ -286,8 +298,15 @@ function ActiveOrders() {
               label = "Closed";
               btnClass = "ao-btn ao-btn-disabled";
               disabled = true;
+            } else if (admin && chatReady) {
+              // ✅ Admin gets Start Chat as soon as anyone has been accepted
+              label = "💬 Start Chat";
+              btnClass = "ao-btn ao-btn-chat";
+              disabled = false;
+              action = () => navigate(`/chat/${order._id}`);
             } else if (admin) {
-              label = "👑 Created by You";
+              // Admin's order, no one accepted yet
+              label = "👑 Waiting for members...";
               btnClass = "ao-btn ao-btn-disabled";
               disabled = true;
             } else if (participant) {
@@ -352,7 +371,7 @@ function ActiveOrders() {
                   disabled={disabled}
                   className={btnClass}
                 >
-                  {btnClass.includes('join') ? <span>{label}</span> : label}
+                  {btnClass.includes('ao-btn-join') ? <span>{label}</span> : label}
                 </button>
               </div>
             );
