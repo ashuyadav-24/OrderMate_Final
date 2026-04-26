@@ -86,7 +86,7 @@ function Login() {
           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
           letter-spacing: -0.5px;
         }
-        .lg-logo-tag { font-size: 11px; color: #4b5563; margin-top: 2px; letter-spacing: 0.5px; }
+        .lg-logo-tag { font-size: 11px; color: #8b95a5; margin-top: 2px; letter-spacing: 0.5px; }
 
         .lg-layout {
           min-height: 100vh;
@@ -110,7 +110,7 @@ function Login() {
         }
 
         .lg-tagline {
-          font-size: 14px; color: #4b5563; line-height: 1.75;
+          font-size: 14px; color: #8b95a5; line-height: 1.75;
           margin-bottom: 36px; max-width: 400px;
         }
 
@@ -150,7 +150,7 @@ function Login() {
           font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
           color: #e2e8f0; margin-bottom: 3px; letter-spacing: -0.2px;
         }
-        .lg-feat-desc { font-size: 12px; color: #4b5563; line-height: 1.6; }
+        .lg-feat-desc { font-size: 12px; color: #8b95a5; line-height: 1.6; }
 
         .lg-stats {
           display: flex; gap: 0; margin-top: 32px; padding-top: 24px;
@@ -166,7 +166,7 @@ function Login() {
           font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800;
           color: #a78bfa; letter-spacing: -0.5px;
         }
-        .lg-stat-label { font-size: 11px; color: #374151; }
+        .lg-stat-label { font-size: 11px; color: #8b95a5; }
 
         /* ── Right: Card ── */
         .lg-card {
@@ -187,7 +187,7 @@ function Login() {
           font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 700;
           color: #f1f5f9; letter-spacing: -0.5px; margin-bottom: 6px;
         }
-        .lg-card-sub { font-size: 13px; color: #64748b; margin-bottom: 32px; }
+        .lg-card-sub { font-size: 13px; color: #8b95a5; margin-bottom: 32px; }
 
         .lg-input-label {
           font-size: 11px; font-weight: 500; color: #94a3b8;
@@ -204,7 +204,7 @@ function Login() {
           font-family: 'DM Sans', sans-serif;
           outline: none; transition: all 0.2s ease;
         }
-        .lg-email-input::placeholder { color: #374151; }
+        .lg-email-input::placeholder { color: #6b7280; }
         .lg-email-input:focus {
           border-color: rgba(139,92,246,0.6);
           background: rgba(139,92,246,0.06);
@@ -228,7 +228,7 @@ function Login() {
         .lg-send-btn span { position: relative; z-index: 1; }
 
         .lg-footer-text {
-          font-size: 11px; color: #1f2937; text-align: center; margin-top: 22px;
+          font-size: 11px; color: #6b7280; text-align: center; margin-top: 22px;
         }
 
         /* trust badges */
@@ -239,7 +239,7 @@ function Login() {
           padding: 5px 10px; border-radius: 8px;
           background: rgba(255,255,255,0.03);
           border: 1px solid rgba(255,255,255,0.07);
-          font-size: 11px; color: #4b5563;
+          font-size: 11px; color: #8b95a5;
           display: flex; align-items: center; gap: 5px;
         }
 
