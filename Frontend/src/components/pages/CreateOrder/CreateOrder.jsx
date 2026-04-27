@@ -33,6 +33,8 @@ function CreateOrder() {
     zepto: "⚡",
     amazon: "📦",
     flipkart: "🛍️",
+    bigbasket: "🧺",
+    jiomart: "🔵",
   };
 
   return (
@@ -79,7 +81,7 @@ function CreateOrder() {
           font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 700;
           color: #f1f5f9; letter-spacing: -0.5px; margin-bottom: 6px;
         }
-        .co-sub { font-size: 13px; color: #64748b; margin-bottom: 32px; }
+        .co-sub { font-size: 13px; color: #94a3b8; margin-bottom: 32px; }
 
         .co-label {
           display: block; font-size: 11px; font-weight: 500;
@@ -96,7 +98,7 @@ function CreateOrder() {
           outline: none; transition: all 0.2s ease;
           -webkit-appearance: none; appearance: none;
         }
-        .co-input::placeholder { color: #374151; }
+        .co-input::placeholder { color: #64748b; }
         .co-select:focus, .co-input:focus {
           border-color: rgba(139,92,246,0.6);
           background: rgba(139,92,246,0.06);
@@ -167,7 +169,7 @@ function CreateOrder() {
       {/* Logo */}
       <div style={{ position: 'absolute', top: 24, right: 28, textAlign: 'right' }}>
         <div className="co-logo">OrderMate</div>
-        <div style={{ fontSize: 11, color: '#374151', marginTop: 2 }}>Order together. Save together.</div>
+        <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>Order together. Save together.</div>
       </div>
 
       <div className="co-card">
@@ -177,7 +179,7 @@ function CreateOrder() {
         {/* Platform Pills */}
         <label className="co-label">Platform</label>
         <div className="co-platforms">
-          {["instamart", "blinkit", "zepto", "amazon", "flipkart"].map((p) => (
+          {["instamart", "blinkit", "zepto", "amazon", "flipkart", "bigbasket", "jiomart"].map((p) => (
             <button
               key={p}
               onClick={() => setForm({ ...form, platform: p })}

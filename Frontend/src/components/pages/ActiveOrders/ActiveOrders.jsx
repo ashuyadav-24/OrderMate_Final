@@ -166,7 +166,7 @@ function ActiveOrders() {
         .ao-meta {
           display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap;
         }
-        .ao-meta-item { font-size: 12px; color: #374151; display: flex; align-items: center; gap: 4px; }
+        .ao-meta-item { font-size: 12px; color: #64748b; display: flex; align-items: center; gap: 4px; }
         .ao-meta-item span { color: #64748b; }
 
         .ao-badge {
@@ -213,8 +213,8 @@ function ActiveOrders() {
           font-family: 'Syne', sans-serif;
         }
         .ao-empty-icon { font-size: 48px; margin-bottom: 16px; }
-        .ao-empty-title { font-size: 18px; color: #374151; font-weight: 700; }
-        .ao-empty-sub { font-size: 13px; color: #1f2937; margin-top: 6px; }
+        .ao-empty-title { font-size: 18px; color: #64748b; font-weight: 700; }
+        .ao-empty-sub { font-size: 13px; color: #475569; margin-top: 6px; }
 
         .ao-toast {
           position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
@@ -238,7 +238,7 @@ function ActiveOrders() {
           background: linear-gradient(135deg, #a78bfa, #60a5fa);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
         }
-        .ao-footer-tag { font-size: 11px; color: #1f2937; margin-top: 4px; }
+        .ao-footer-tag { font-size: 11px; color: #475569; margin-top: 4px; }
         .ao-divider { height: 1px; background: rgba(255,255,255,0.04); margin: 8px 0; }
       `}</style>
 
@@ -333,7 +333,7 @@ function ActiveOrders() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
                   <div>
                     <div className="ao-platform">{order.platform}</div>
-                    <div style={{ fontSize: 12, color: '#374151', marginTop: 2 }}>Hostel {order.hostel}</div>
+                    <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>Hostel {order.hostel}</div>
                   </div>
                   <span className="ao-badge" style={{ background: sc.bg, color: sc.color, borderColor: sc.border }}>
                     {order.status}
@@ -349,10 +349,7 @@ function ActiveOrders() {
                   }} />
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                  <span style={{ color: '#94a3b8' }}>₹{order.currentAmount} raised</span>
-                  <span style={{ color: '#4b5563' }}>of ₹{order.targetAmount}</span>
-                </div>
+                
 
                 <div style={{ color: '#34d399', fontSize: 12, marginTop: 4 }}>
                   Need ₹{Math.max(0, order.targetAmount - order.currentAmount)} more
