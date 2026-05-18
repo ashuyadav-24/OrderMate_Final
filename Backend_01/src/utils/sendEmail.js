@@ -1,61 +1,35 @@
-import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import SibApiV3Sdk from "sib-api-v3-sdk";
 
 dotenv.config();
 
-/*
-🧠 Purpose:
-This file sends OTP emails using Brevo SMTP + Nodemailer.
-*/
-console.log("BREVO EMAIL:", process.env.BREVO_EMAIL);
-console.log(
-  "BREVO KEY EXISTS:",
-  !!process.env.BREVO_SMTP_KEY
-);
+const client = SibApiV3Sdk.ApiClient.instance;
 
-// ✅ Create transporter
-const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
-  port: 587,
-  secure: false,
+const apiKey = client.authentications["api-key"];
+apiKey.apiKey = process.env.BREVO_API_KEY;
 
-  auth: {
-    user: process.env.BREVO_EMAIL,
-    pass: process.env.BREVO_SMTP_KEY,
-  },
+const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
-  connectionTimeout: 20000,
-  greetingTimeout: 20000,
-  socketTimeout: 20000,
-});
-
-/*
-✅ Verify SMTP connection when server starts
-*/
-transporter.verify((error, success) => {
-  if (error) {
-    console.log("❌ SMTP Connection Error:", error.message);
-  } else {
-    console.log("✅ Brevo SMTP Server Ready");
-  }
-});
-
-/*
-📧 Function to send OTP email
-*/
 export const sendOTPEmail = async (toEmail, otp) => {
   try {
 
-    console.log("📩 Starting email process...");
-    console.log("📧 Sending email to:", toEmail);
+    console.log("📩 Sending OTP via Brevo API...");
 
-    // ✅ Email template
-    const mailOptions = {
-      from: `"GroupOrder App" <${process.env.BREVO_EMAIL}>`,
-      to: toEmail,
+    const sendSmtpEmail = {
+      sender: {
+        email: process.env.BREVO_EMAIL,
+        name: "OrderMate",
+      },
+
+      to: [
+        {
+          email: toEmail,
+        },
+      ],
+
       subject: "Your OTP Code 🔐",
 
-      html: `
+      htmlContent: `
         <div style="
           font-family: Arial;
           max-width: 400px;
@@ -65,9 +39,7 @@ export const sendOTPEmail = async (toEmail, otp) => {
           border-radius: 10px;
         ">
 
-          <h2 style="color:#333;">
-            Your Login OTP
-          </h2>
+          <h2>Your Login OTP</h2>
 
           <p>
             Use the OTP below to continue.
@@ -79,32 +51,30 @@ export const sendOTPEmail = async (toEmail, otp) => {
             font-weight: bold;
             letter-spacing: 5px;
             margin: 20px 0;
-            color: #2c3e50;
           ">
             ${otp}
           </div>
-
-          <p style="font-size: 12px; color: gray;">
-            If you didn't request this OTP,
-            you can safely ignore this email.
-          </p>
 
         </div>
       `,
     };
 
-    // ✅ Send email
-    const info = await transporter.sendMail(mailOptions);
+    const result = await apiInstance.sendTransacEmail(sendSmtpEmail);
 
-    console.log("✅ Email sent successfully");
-    console.log("📨 Response:", info.response);
+    console.log("✅ OTP Email sent");
+    console.log(result);
 
     return true;
 
   } catch (error) {
 
-    console.log("❌ Email sending failed");
-    console.log("❌ Error:", error.message);
+    console.log("❌ Brevo API Error");
+
+    if (error.response) {
+      console.log(error.response.body);
+    } else {
+      console.log(error.message);
+    }
 
     return false;
   }
