@@ -51,9 +51,15 @@ const userSchema = new mongoose.Schema({
     default: false,
   },
   isProfileComplete: {
-  type: Boolean,
-  default: false
-}
+    type: Boolean,
+    default: false,
+  },
+
+  // 🔔 Web Push subscription — saved when user grants notification permission
+  pushSubscription: {
+    type: Object,
+    default: null,
+  },
 
 },{timestamps : true})
 

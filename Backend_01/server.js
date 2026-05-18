@@ -9,6 +9,7 @@ import orderRoutes from "./src/routes/order.routes.js";
 import requestRoutes from "./src/routes/request.routes.js";
 import chatRoutes from "./src/routes/chat.routes.js";
 import socketHandler from "./src/socket/socketHandler.js";
+import pushRoutes from "./src/routes/push.routes.js";
 
 dotenv.config();
 
@@ -73,6 +74,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/requests", requestRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/push", pushRoutes);
 
 // ── Test ──────────────────────────────────────
 app.get("/", (req, res) => res.send("Server HomePage"));

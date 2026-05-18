@@ -1,82 +1,95 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
-dotenv.config();
-/*
-🧠 What is this file?
-This file is responsible for sending OTP emails to users.
 
-Flow:
-Backend → Nodemailer → Gmail → User inbox 📧
+dotenv.config();
+
+/*
+🧠 Purpose:
+This file sends OTP emails using Gmail SMTP + Nodemailer.
 */
 
-// ✅ Create transporter (connection between your server and Gmail)
+// ✅ Create transporter
 const transporter = nodemailer.createTransport({
-  service: "gmail", // using Gmail SMTP service
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true, // true for 465
+
   auth: {
-    user: process.env.GMAIL_USER,      // your Gmail (sender)
-    pass: process.env.GMAIL_APP_PASS,  // App Password (NOT normal password)
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASS,
   },
+
+  // ✅ Timeout fixes for Render free tier
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
 });
 
 /*
-📌 Why transporter?
-It acts like a "bridge" that allows your backend to send emails via Gmail.
+✅ Verify SMTP connection when server starts
 */
+transporter.verify((error, success) => {
+  if (error) {
+    console.log("❌ SMTP Connection Error:", error.message);
+  } else {
+    console.log("✅ SMTP Server Ready");
+  }
+});
 
-// ✅ Function to send OTP email
+/*
+📧 Function to send OTP email
+*/
 export const sendOTPEmail = async (toEmail, otp) => {
   try {
-    // 🪵 Debug log (helps you see flow in terminal)
+    console.log("📩 Starting email process...");
     console.log("📧 Sending email to:", toEmail);
 
-    // 📦 Email content configuration
+    // ✅ Email template
     const mailOptions = {
-      // 👤 Sender (what user sees)
       from: `"GroupOrder App" <${process.env.GMAIL_USER}>`,
-
-      // 📬 Receiver
       to: toEmail,
-
-      // 📝 Subject line
       subject: "Your OTP Code 🔐",
 
-      // 🎨 HTML email (better UI than plain text)
       html: `
         <div style="font-family: Arial; max-width: 400px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-          <h2>Your Login OTP</h2>
-          <p>Use the code below. It expires in <strong>10 minutes</strong>.</p>
+          
+          <h2 style="color:#333;">Your Login OTP</h2>
 
-          <!-- OTP displayed big for clarity -->
-          <div style="font-size: 32px; font-weight: bold; letter-spacing: 5px;">
+          <p>
+            Use the OTP below to continue.
+            This OTP expires in <strong>10 minutes</strong>.
+          </p>
+
+          <div style="
+            font-size: 32px;
+            font-weight: bold;
+            letter-spacing: 5px;
+            margin: 20px 0;
+            color: #2c3e50;
+          ">
             ${otp}
           </div>
 
           <p style="font-size: 12px; color: gray;">
-            If you didn't request this, ignore this email.
+            If you didn't request this OTP, you can safely ignore this email.
           </p>
+
         </div>
       `,
     };
 
-    /*
-    📤 Send email
-    This actually calls Gmail servers and sends the email
-    */
+    // ✅ WAIT for email to send
     const info = await transporter.sendMail(mailOptions);
 
-    // ✅ Success log
-    console.log("✅ Email sent:", info.response);
+    console.log("✅ Email sent successfully");
+    console.log("📨 Response:", info.response);
 
     return true;
 
   } catch (error) {
-    /*
-    ❌ If anything fails:
-    - wrong app password
-    - network issue
-    - Gmail blocked request
-    */
-    console.log("❌ Email error:", error.message);
+
+    console.log("❌ Email sending failed");
+    console.log("❌ Error:", error.message);
 
     return false;
   }

@@ -1,4 +1,5 @@
 import Request from "../models/request.models.js";
+import { sendPushToUser } from "./push.controller.js";
 import Order from "../models/order.models.js";
 
 // ============================================
@@ -47,12 +48,19 @@ export const sendRequest = async (req, res) => {
 
     await request.populate("userId", "name userName");
 
-    // 🔔 Notify admin in real time
+    // 🔔 Notify admin via Socket.io (tab open)
     global.io.to(order.admin.toString()).emit("newRequest", {
       requestId: request._id,
       orderId: order._id,
       userName: request.userId.userName,
       name: request.userId.name,
+    });
+
+    // 🔔 Notify admin via Web Push (browser closed)
+    sendPushToUser(order.admin, {
+      title: "New Join Request 🛒",
+      body: `${request.userId.name} wants to join your ${order.platform} order`,
+      url: "/home",
     });
 
     res.status(201).json({ message: "Join request sent successfully", request });
@@ -100,15 +108,22 @@ export const acceptRequest = async (req, res) => {
     request.status = "accepted";
     await request.save();
 
-    // 🔔 Notify the joiner — their button will flip to "Chat Now"
+    // 🔔 Notify joiner via Socket.io (tab open)
     global.io.to(request.userId.toString()).emit("requestAccepted", {
-  orderId: order._id,
-});
+      orderId: order._id,
+    });
 
-// notify chat room users to refresh members count
-global.io.to(order._id.toString()).emit("memberJoined", {
-  orderId: order._id,
-});
+    // 🔔 Notify chat room to refresh member count
+    global.io.to(order._id.toString()).emit("memberJoined", {
+      orderId: order._id,
+    });
+
+    // 🔔 Notify joiner via Web Push (browser closed)
+    sendPushToUser(request.userId, {
+      title: "Request Accepted! 🎉",
+      body: `You can now join the ${order.platform} order chat`,
+      url: `/chat/${order._id}`,
+    });
 
     res.json({ message: "Accepted!", order });
 
@@ -136,9 +151,16 @@ export const declineRequest = async (req, res) => {
     request.status = "rejected";
     await request.save();
 
-    // 🔔 Notify the joiner their request was declined
+    // 🔔 Notify joiner via Socket.io
     global.io.to(request.userId.toString()).emit("requestDeclined", {
       orderId: order._id,
+    });
+
+    // 🔔 Notify joiner via Web Push
+    sendPushToUser(request.userId, {
+      title: "Request Declined",
+      body: "Your join request was declined by the admin",
+      url: "/active-orders",
     });
 
     res.json({ message: "Request declined" });
