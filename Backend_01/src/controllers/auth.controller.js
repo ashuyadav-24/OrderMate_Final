@@ -42,17 +42,24 @@ export const sendOTP = async (req, res) => {
 
     console.log("STEP 4: Saved to DB");
 
-    // 📧 Send email (NON-BLOCKING)
-    console.log("CALLING EMAIL FUNCTION...");
-    sendOTPEmail(email, plainOTP)
-      .then(() => console.log("📧 Email sent"))
-      .catch(err => console.log("❌ Email error:", err.message));
+   // 📧 Send OTP Email
+console.log("CALLING EMAIL FUNCTION...");
 
-    console.log("STEP 5: Response sent");
+const isSent = await sendOTPEmail(email, plainOTP);
 
-    return res.status(200).json({
-      message: "OTP sent to your email",
-    });
+if (!isSent) {
+  console.log("❌ OTP email failed");
+
+  return res.status(500).json({
+    message: "Failed to send OTP email",
+  });
+}
+
+console.log("✅ OTP Email sent successfully");
+
+return res.status(200).json({
+  message: "OTP sent to your email",
+});
 
   } catch (error) {
     console.log("ERROR:", error);
