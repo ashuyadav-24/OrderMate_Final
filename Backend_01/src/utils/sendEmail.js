@@ -5,24 +5,18 @@ dotenv.config();
 
 /*
 🧠 Purpose:
-This file sends OTP emails using Gmail SMTP + Nodemailer.
+This file sends OTP emails using Brevo SMTP + Nodemailer.
 */
 
 // ✅ Create transporter
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
+  host: "smtp-relay.brevo.com",
   port: 587,
   secure: false,
 
   auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASS,
-  },
-
-  family: 4, // ✅ force IPv4
-
-  tls: {
-    rejectUnauthorized: false,
+    user: process.env.BREVO_EMAIL,
+    pass: process.env.BREVO_SMTP_KEY,
   },
 
   connectionTimeout: 20000,
@@ -37,7 +31,7 @@ transporter.verify((error, success) => {
   if (error) {
     console.log("❌ SMTP Connection Error:", error.message);
   } else {
-    console.log("✅ SMTP Server Ready");
+    console.log("✅ Brevo SMTP Server Ready");
   }
 });
 
@@ -46,19 +40,29 @@ transporter.verify((error, success) => {
 */
 export const sendOTPEmail = async (toEmail, otp) => {
   try {
+
     console.log("📩 Starting email process...");
     console.log("📧 Sending email to:", toEmail);
 
     // ✅ Email template
     const mailOptions = {
-      from: `"GroupOrder App" <${process.env.GMAIL_USER}>`,
+      from: `"GroupOrder App" <${process.env.BREVO_EMAIL}>`,
       to: toEmail,
       subject: "Your OTP Code 🔐",
 
       html: `
-        <div style="font-family: Arial; max-width: 400px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-          
-          <h2 style="color:#333;">Your Login OTP</h2>
+        <div style="
+          font-family: Arial;
+          max-width: 400px;
+          margin: auto;
+          padding: 20px;
+          border: 1px solid #eee;
+          border-radius: 10px;
+        ">
+
+          <h2 style="color:#333;">
+            Your Login OTP
+          </h2>
 
           <p>
             Use the OTP below to continue.
@@ -76,14 +80,15 @@ export const sendOTPEmail = async (toEmail, otp) => {
           </div>
 
           <p style="font-size: 12px; color: gray;">
-            If you didn't request this OTP, you can safely ignore this email.
+            If you didn't request this OTP,
+            you can safely ignore this email.
           </p>
 
         </div>
       `,
     };
 
-    // ✅ WAIT for email to send
+    // ✅ Send email
     const info = await transporter.sendMail(mailOptions);
 
     console.log("✅ Email sent successfully");
