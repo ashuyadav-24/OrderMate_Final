@@ -11,8 +11,8 @@ This file sends OTP emails using Gmail SMTP + Nodemailer.
 // ✅ Create transporter
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 465,
-  secure: true, // true for 465
+  port: 587,
+  secure: true, // true for 587
 
   auth: {
     user: process.env.GMAIL_USER,
