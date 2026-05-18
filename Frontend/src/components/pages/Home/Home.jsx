@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { API } from "../../../api/api.js";
 import { socket } from "../../../socket";
 import { Bell, Power } from "lucide-react";
-import { usePushNotifications } from "../../hooks/usePushNotifications";
-import { useTabNotifications } from "../../hooks/useTabNotifications";
+import { usePushNotifications } from "../../../hooks/usePushNotifications";
+import { useTabNotifications } from "../../../hooks/useTabNotifications";
 
 function Home() {
   const navigate = useNavigate();
