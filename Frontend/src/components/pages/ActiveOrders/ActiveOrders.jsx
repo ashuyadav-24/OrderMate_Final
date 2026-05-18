@@ -3,8 +3,8 @@ import { API } from "../../../api/api";
 import { useNavigate } from "react-router-dom";
 import { socket } from "../../../socket";
 import NotificationBell from "../NotificationBell/NotificationBell.jsx";
-import { usePushNotifications } from "../../hooks/usePushNotifications";
-import { useTabNotifications } from "../../hooks/useTabNotifications";
+import { usePushNotifications } from "../../../hooks/usePushNotifications.js";
+import { useTabNotifications } from "../../../hooks/useTabNotifications.js";
 
 function ActiveOrders() {
   const [orders, setOrders] = useState([]);
