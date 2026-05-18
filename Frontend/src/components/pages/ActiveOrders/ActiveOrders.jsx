@@ -3,6 +3,8 @@ import { API } from "../../../api/api";
 import { useNavigate } from "react-router-dom";
 import { socket } from "../../../socket";
 import NotificationBell from "../NotificationBell/NotificationBell.jsx";
+import { usePushNotifications } from "../../hooks/usePushNotifications";
+import { useTabNotifications } from "../../hooks/useTabNotifications";
 
 function ActiveOrders() {
   const [orders, setOrders] = useState([]);
@@ -12,6 +14,8 @@ function ActiveOrders() {
   const [time, setTime] = useState(Date.now());
   const [toast, setToast] = useState(null);
   const navigate = useNavigate();
+
+  const { notify } = useTabNotifications();
 
   const getUser = () => {
     try {
@@ -71,10 +75,11 @@ function ActiveOrders() {
 
   useEffect(() => {
     if (!user._id) return;
-    socket.emit("joinUserRoom", user._id);
+    socket.emit("joinUserRoom"); // server reads userId from socket.userId (JWT auth)
 
     socket.on("requestAccepted", async ({ orderId }) => {
       showToast("🎉 Request accepted! You can now start the chat.", "success");
+      notify("Request accepted! Open chat →"); // 🔊 sound + tab blink
       setRequestedIds((prev) => prev.filter((id) => id !== orderId));
       await fetchOrders();
     });

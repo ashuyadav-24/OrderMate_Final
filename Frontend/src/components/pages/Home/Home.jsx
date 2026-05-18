@@ -3,9 +3,13 @@ import { useEffect, useRef, useState } from "react";
 import { API } from "../../../api/api.js";
 import { socket } from "../../../socket";
 import { Bell, Power } from "lucide-react";
+import { usePushNotifications } from "../../hooks/usePushNotifications";
+import { useTabNotifications } from "../../hooks/useTabNotifications";
 
 function Home() {
   const navigate = useNavigate();
+  usePushNotifications(); // registers SW + subscribes to web push
+  const { notify } = useTabNotifications(); // sound + tab blink
 
   const getStoredUser = () => {
     try {
@@ -63,6 +67,7 @@ function Home() {
   useEffect(() => {
     socket.on("newRequest", (data) => {
       showToast(`📩 ${data.name} (@${data.userName}) wants to join!`, "info");
+      notify("New join request!"); // 🔊 sound + tab blink
       fetchRequests();
     });
     return () => socket.off("newRequest");
