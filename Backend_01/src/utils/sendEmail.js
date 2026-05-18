@@ -12,17 +12,22 @@ This file sends OTP emails using Gmail SMTP + Nodemailer.
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
-  secure: true, // true for 587
+  secure: false,
 
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_APP_PASS,
   },
 
-  // ✅ Timeout fixes for Render free tier
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 10000,
+  family: 4, // ✅ force IPv4
+
+  tls: {
+    rejectUnauthorized: false,
+  },
+
+  connectionTimeout: 20000,
+  greetingTimeout: 20000,
+  socketTimeout: 20000,
 });
 
 /*
